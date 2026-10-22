@@ -1,0 +1,1857 @@
+<!doctype html>
+<html lang="en" data-theme="dark" data-bs-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GCPL Treasury Control Tower</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.2/font/bootstrap-icons.min.css">
+<script src="https://cdn.jsdelivr.net/npm/vue@3.5.44/dist/vue.global.prod.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
+<style>
+/* ---------- tokens ---------- */
+:root{
+  --brand:#ffe600; --brand-ink:#16161d;
+  --nav:#17171e; --nav-2:#202029; --nav-ink:#c9c8c0; --nav-muted:#7f7e78;
+  --font:"Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+  --good:#0ca30c; --warn:#fab219; --serious:#ec835a; --crit:#d03b3b;
+}
+html[data-theme="dark"]{
+  color-scheme:dark;
+  --page:#111117; --surface:#1b1b23; --surface-2:#23232d; --surface-3:#2d2d39;
+  --border:rgba(255,255,255,.08); --border-2:rgba(255,255,255,.15);
+  --ink:#f0efec; --ink-2:#c3c2b7; --ink-3:#8f8e88; --grid:#2a2a33;
+  --accent-text:#ffe600; --hover:rgba(255,255,255,.04);
+  --good-t:#43c443; --warn-t:#fab219; --serious-t:#ef9470; --crit-t:#f07a7a; --info-t:#86b6ef;
+  --good-bg:rgba(12,163,12,.16); --warn-bg:rgba(250,178,25,.15); --serious-bg:rgba(236,131,90,.16); --crit-bg:rgba(208,59,59,.20); --info-bg:rgba(57,135,229,.16);
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#9085e9; --neutral:#7d7c76;
+  --heat:57,135,229;
+}
+html[data-theme="light"]{
+  color-scheme:light;
+  --page:#f2f2ee; --surface:#ffffff; --surface-2:#f6f6f3; --surface-3:#ebebe6;
+  --border:rgba(11,11,11,.09); --border-2:rgba(11,11,11,.17);
+  --ink:#16161d; --ink-2:#52514e; --ink-3:#74736d; --grid:#e6e5df;
+  --accent-text:#6f5c00; --hover:rgba(0,0,0,.03);
+  --good-t:#006300; --warn-t:#7d4f00; --serious-t:#a3441c; --crit-t:#b3261e; --info-t:#1c5cab;
+  --good-bg:rgba(12,163,12,.11); --warn-bg:rgba(250,178,25,.20); --serious-bg:rgba(236,131,90,.18); --crit-bg:rgba(208,59,59,.12); --info-bg:rgba(42,120,214,.11);
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s5:#e87ba4; --s6:#6250d6; --neutral:#a3a29b;
+  --heat:42,120,214;
+}
+*{box-sizing:border-box}
+html,body{background:var(--page);}
+body{color:var(--ink); font-family:var(--font); font-size:14px; margin:0; -webkit-font-smoothing:antialiased;}
+a{color:inherit}
+[v-cloak]{display:none}
+.tnum{font-variant-numeric:tabular-nums}
+.muted{color:var(--ink-3)} .ink2{color:var(--ink-2)}
+.small2{font-size:12px}
+.fw6{font-weight:600} .fw7{font-weight:700}
+
+/* ---------- shell ---------- */
+.topband{height:4px; background:var(--brand); position:sticky; top:0; z-index:40}
+.shell{display:flex; min-height:calc(100vh - 4px)}
+.side{width:244px; flex-shrink:0; background:var(--nav); color:var(--nav-ink); position:sticky; top:4px; height:calc(100vh - 4px); overflow-y:auto; display:flex; flex-direction:column; z-index:30}
+.brand{display:flex; gap:10px; align-items:center; padding:18px 16px 14px}
+.logo{width:38px; height:38px; background:var(--brand); color:var(--brand-ink); font-weight:800; font-size:11px; display:flex; align-items:center; justify-content:center; clip-path:polygon(0 18%,100% 0,100% 100%,0 100%); letter-spacing:.02em}
+.b1{font-weight:700; color:#f4f3ef; font-size:14px; line-height:1.15}
+.b2{font-size:11px; color:var(--nav-muted)}
+.nav-sec{font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--nav-muted); padding:14px 18px 6px; font-weight:700}
+.nav-it{display:flex; align-items:center; gap:10px; padding:8px 16px 8px 15px; margin:1px 8px; border-radius:7px; color:var(--nav-ink); text-decoration:none; cursor:pointer; border:none; background:none; width:calc(100% - 16px); text-align:left; font-size:13.5px; border-left:3px solid transparent}
+.nav-it i{font-size:15px; width:18px; text-align:center; opacity:.9}
+.nav-it:hover{background:var(--nav-2); color:#fff}
+.nav-it.active{background:var(--nav-2); color:#fff; border-left-color:var(--brand)}
+.nav-it.active i{color:var(--brand)}
+.nav-it.locked{opacity:.38; cursor:not-allowed}
+.nav-it .q{margin-left:auto; font-size:10px; color:var(--nav-muted); font-weight:600}
+.side-foot{margin-top:auto; padding:14px 16px; font-size:11px; color:var(--nav-muted); border-top:1px solid rgba(255,255,255,.06); line-height:1.45}
+.main{flex:1; min-width:0; display:flex; flex-direction:column}
+.topbar{display:flex; align-items:center; gap:10px; padding:10px 20px; background:var(--surface); border-bottom:1px solid var(--border); position:sticky; top:4px; z-index:25; flex-wrap:wrap}
+.role-pick{display:flex; align-items:center; gap:8px; background:var(--surface-2); border:1px solid var(--border-2); border-radius:8px; padding:3px 4px 3px 10px}
+.role-pick label{font-size:11px; color:var(--ink-3); white-space:nowrap}
+.role-pick select{background:transparent; color:var(--ink); border:none; font-weight:600; font-size:13px; padding:4px 4px; outline:none; max-width:210px}
+.role-pick select option{background:var(--surface); color:var(--ink)}
+.ask{flex:1; min-width:180px; max-width:420px; display:flex; align-items:center; gap:8px; background:var(--surface-2); border:1px solid var(--border-2); border-radius:8px; padding:6px 10px}
+.ask i{color:var(--accent-text)}
+.ask input{flex:1; background:transparent; border:none; outline:none; color:var(--ink); font-size:13px; min-width:0}
+.ask input::placeholder{color:var(--ink-3)}
+.fresh{display:flex; flex-direction:column; font-size:11px; color:var(--ink-3); line-height:1.3; margin-left:auto}
+.fresh b{color:var(--ink-2); font-weight:600}
+.clock{display:flex; align-items:center; gap:6px; font-weight:600; font-size:13px; white-space:nowrap; font-variant-numeric:tabular-nums}
+.live-dot{width:8px; height:8px; border-radius:50%; background:var(--good); box-shadow:0 0 0 0 rgba(12,163,12,.6); animation:pulse 2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(12,163,12,.55)} 70%{box-shadow:0 0 0 7px rgba(12,163,12,0)} 100%{box-shadow:0 0 0 0 rgba(12,163,12,0)}}
+@media (prefers-reduced-motion: reduce){ .live-dot{animation:none} }
+.btn-icon{position:relative; width:36px; height:36px; border-radius:8px; border:1px solid var(--border-2); background:var(--surface-2); color:var(--ink); display:inline-flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0}
+.btn-icon:hover{border-color:var(--ink-3)}
+.badge-n{position:absolute; top:-6px; right:-6px; min-width:18px; height:18px; border-radius:9px; background:var(--crit); color:#fff; font-size:10.5px; font-weight:700; display:flex; align-items:center; justify-content:center; padding:0 5px}
+.content{padding:20px 22px 30px; flex:1}
+.foot{padding:12px 22px 18px; font-size:11.5px; color:var(--ink-3); border-top:1px solid var(--border)}
+.nav-backdrop{position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:29}
+@media (max-width: 991.98px){
+  .side{position:fixed; left:0; top:0; height:100vh; transform:translateX(-100%); transition:transform .2s ease}
+  .side.open{transform:none}
+  .content{padding:16px 14px 26px}
+  .topbar{padding:8px 12px}
+}
+
+/* ---------- view header ---------- */
+.vh{display:flex; flex-wrap:wrap; justify-content:space-between; align-items:flex-end; gap:10px 16px; margin-bottom:18px; padding-bottom:12px; border-bottom:2px solid var(--brand)}
+.vh h1{font-size:22px; font-weight:700; margin:0; letter-spacing:-.01em}
+.vh-sub{color:var(--ink-2); font-style:italic; font-size:13.5px; margin-top:3px}
+.vh-r{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+.qchip{background:var(--brand); color:var(--brand-ink); font-weight:700; font-size:11.5px; padding:4px 12px; border-radius:5px; white-space:nowrap}
+.scope-pill{font-size:12px; color:var(--ink-2); border:1px solid var(--border-2); border-radius:999px; padding:3px 10px; white-space:nowrap}
+
+/* ---------- cards ---------- */
+.cardx{background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:16px; height:100%}
+.ch{display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:12px; flex-wrap:wrap}
+.ct{font-weight:650; font-size:14.5px}
+.cs{color:var(--ink-3); font-size:12px; margin-top:2px}
+.stat{cursor:default}
+.stat.click{cursor:pointer}
+.stat.click:hover{border-color:var(--border-2)}
+.stat .lbl{font-size:12px; color:var(--ink-3); display:flex; align-items:center; gap:6px}
+.stat .val{font-size:25px; font-weight:650; line-height:1.15; margin-top:6px; letter-spacing:-.01em}
+.stat .val small{font-size:13px; font-weight:500; color:var(--ink-2); margin-left:3px}
+.stat .sub{font-size:12px; color:var(--ink-2); margin-top:5px}
+.hl{border-left:3px solid var(--brand)}
+.dark-card{background:#202029; color:#f0efec; border-color:transparent}
+html[data-theme="light"] .dark-card{background:#2b2b35}
+.dark-card .cs{color:#a9a8a0}
+
+/* ---------- chips ---------- */
+.chip{display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:600; padding:2px 9px; border-radius:999px; white-space:nowrap; line-height:1.6}
+.chip.good{background:var(--good-bg); color:var(--good-t)}
+.chip.warn{background:var(--warn-bg); color:var(--warn-t)}
+.chip.serious{background:var(--serious-bg); color:var(--serious-t)}
+.chip.crit{background:var(--crit-bg); color:var(--crit-t)}
+.chip.info{background:var(--info-bg); color:var(--info-t)}
+.chip.neutral{background:var(--surface-3); color:var(--ink-2)}
+.tag{display:inline-block; font-size:11px; padding:1px 7px; border-radius:4px; background:var(--surface-3); color:var(--ink-2); white-space:nowrap}
+.tag.y{background:var(--brand); color:var(--brand-ink); font-weight:600}
+.dot{display:inline-block; width:9px; height:9px; border-radius:2px; vertical-align:middle}
+.lkey{display:inline-block; width:14px; height:2px; vertical-align:middle; border-radius:1px}
+
+/* ---------- tables ---------- */
+.tbl{width:100%; border-collapse:collapse; font-size:13px}
+.tbl th{color:var(--ink-3); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.05em; border-bottom:1px solid var(--border-2); padding:8px 8px; text-align:left; white-space:nowrap; background:transparent}
+.tbl td{padding:8px 8px; border-bottom:1px solid var(--border); vertical-align:middle; font-variant-numeric:tabular-nums}
+.tbl tr.click{cursor:pointer}
+.tbl tr.click:hover td{background:var(--hover)}
+.tbl tr.sel td{background:var(--hover)}
+.tbl .r{text-align:right; white-space:nowrap}
+.tbl .nw{white-space:nowrap}
+.tbl .c{text-align:center}
+.tbl tfoot td{font-weight:650; border-top:1px solid var(--border-2); border-bottom:none}
+.tscroll{overflow-x:auto}
+
+/* ---------- controls ---------- */
+.seg{display:inline-flex; background:var(--surface-2); border:1px solid var(--border-2); border-radius:8px; padding:2px}
+.seg button{border:none; background:transparent; color:var(--ink-2); font-size:12.5px; font-weight:600; padding:5px 11px; border-radius:6px; cursor:pointer; white-space:nowrap}
+.seg button.on{background:var(--brand); color:var(--brand-ink)}
+.btnx{border:1px solid var(--border-2); background:var(--surface-2); color:var(--ink); font-size:12.5px; font-weight:600; padding:6px 12px; border-radius:7px; cursor:pointer; white-space:nowrap}
+.btnx:hover{border-color:var(--ink-3)}
+.btnx.brand{background:var(--brand); color:var(--brand-ink); border-color:var(--brand)}
+.btnx.sm{padding:3px 9px; font-size:12px}
+.btnx:disabled{opacity:.45; cursor:not-allowed}
+.filters{display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:14px}
+.filters label{font-size:12px; color:var(--ink-3); margin-right:2px}
+.sw{display:inline-flex; align-items:center; gap:8px; cursor:pointer; user-select:none; font-size:13px}
+.sw input{display:none}
+.sw .tr{width:34px; height:19px; border-radius:10px; background:var(--surface-3); border:1px solid var(--border-2); position:relative; transition:background .15s}
+.sw .tr::after{content:""; position:absolute; top:2px; left:2px; width:13px; height:13px; border-radius:50%; background:var(--ink-3); transition:transform .15s, background .15s}
+.sw input:checked + .tr{background:var(--brand); border-color:var(--brand)}
+.sw input:checked + .tr::after{transform:translateX(15px); background:var(--brand-ink)}
+input[type=range]{accent-color:#c9b200; width:100%}
+select.sel{background:var(--surface-2); color:var(--ink); border:1px solid var(--border-2); border-radius:7px; padding:5px 8px; font-size:13px}
+input.num{background:var(--surface-2); color:var(--ink); border:1px solid var(--border-2); border-radius:7px; padding:4px 8px; font-size:13px; width:90px}
+
+/* ---------- bars ---------- */
+.ubar{position:relative; height:8px; background:var(--surface-3); border-radius:4px; min-width:90px}
+.ubar .f{position:absolute; left:0; top:0; bottom:0; border-radius:4px}
+.ubar .m{position:absolute; top:-3px; bottom:-3px; width:2px; background:var(--ink-2)}
+.hbar{display:flex; align-items:center; gap:8px}
+.hbar .t{flex:1; height:8px; background:var(--surface-3); border-radius:4px; position:relative; overflow:hidden}
+.hbar .t .f{position:absolute; left:0; top:0; bottom:0; border-radius:4px}
+.stack{display:flex; gap:2px; height:22px; border-radius:5px; overflow:hidden}
+.stack div{height:100%}
+.stack div:first-child{border-radius:4px 0 0 4px} .stack div:last-child{border-radius:0 4px 4px 0}
+
+/* ---------- KPI ---------- */
+.kpi{cursor:pointer; transition:border-color .15s}
+.kpi:hover{border-color:var(--border-2)}
+.kpi.sel{border-color:var(--brand); box-shadow:0 0 0 1px var(--brand) inset}
+.kpi .ar{font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-3); font-weight:700; margin-bottom:6px}
+.kpi .kv{font-size:22px; font-weight:650; margin:6px 0 2px}
+.kpi .tg{display:flex; gap:12px; font-size:11.5px; color:var(--ink-3); margin-top:8px}
+.kpi .tg b{color:var(--ink-2); font-weight:600}
+.area-h{font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-3); font-weight:700; margin:6px 0 8px}
+.rag-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:8px}
+.rag{border:1px solid var(--border); border-radius:8px; padding:8px 9px; cursor:pointer; background:var(--surface-2)}
+.rag:hover{border-color:var(--border-2)}
+.rag .n{font-size:11.5px; color:var(--ink-2); display:flex; align-items:center; gap:5px; line-height:1.25}
+.rag .v{font-weight:650; font-size:14px; margin-top:3px}
+
+/* ---------- map ---------- */
+.mapsvg{width:100%; height:auto; display:block}
+.mapsvg .tile{cursor:pointer}
+.mapsvg .tile rect.bg{transition:stroke .1s}
+.mapsvg .tile:hover rect.bg, .mapsvg .tile:focus rect.bg{stroke:var(--ink); stroke-width:2}
+.mapsvg .tile.sel rect.bg{stroke:var(--brand); stroke-width:3}
+.mapsvg .tile.off{cursor:not-allowed; opacity:.28}
+.mapsvg .rlab{font-size:11px; letter-spacing:.14em; font-weight:700; fill:var(--ink-3)}
+.mapsvg .link{stroke:var(--ink-3); stroke-width:1.2; opacity:.55; fill:none}
+.mapsvg .link.over{stroke-dasharray:4 4; stroke:var(--accent-text); opacity:.7}
+.mapsvg .gnode rect{fill:var(--surface-3); stroke:var(--accent-text); stroke-width:1.5}
+.mapsvg .gnode text{fill:var(--ink); font-size:11px; font-weight:700}
+.legend-ramp{display:flex; gap:2px; align-items:center}
+.legend-ramp span{display:inline-block; width:26px; height:10px}
+
+/* ---------- diagram ---------- */
+.dg .zone{fill:var(--surface-2); stroke:var(--border-2)}
+.dg .zone-y{fill:var(--surface-2); stroke:var(--accent-text); stroke-width:1.5}
+.dg .box{fill:var(--surface); stroke:var(--border-2)}
+.dg .boxy{fill:var(--brand)}
+.dg .t1{fill:var(--ink); font-size:13px; font-weight:700}
+.dg .t2{fill:var(--ink-2); font-size:11px}
+.dg .t3{fill:var(--ink-3); font-size:10px; letter-spacing:.12em; font-weight:700}
+.dg .tb{fill:var(--brand-ink); font-size:13px; font-weight:700}
+.dg .tb2{fill:var(--brand-ink); font-size:11px}
+.dg .ln{stroke:var(--ink-3); stroke-width:1.5; fill:none}
+.dg .lny{stroke:var(--accent-text); stroke-width:1.8; fill:none}
+.dg .lnd{stroke:var(--ink-3); stroke-width:1.3; fill:none; stroke-dasharray:5 4}
+
+/* ---------- alerts, toasts, tip ---------- */
+.drawer{position:fixed; top:0; right:0; bottom:0; width:430px; max-width:100vw; background:var(--surface); border-left:1px solid var(--border-2); z-index:60; display:flex; flex-direction:column; box-shadow:-12px 0 30px rgba(0,0,0,.25)}
+.drawer-h{padding:16px 18px 10px; border-bottom:1px solid var(--border)}
+.drawer-b{flex:1; overflow-y:auto; padding:12px 14px}
+.dback{position:fixed; inset:0; background:rgba(0,0,0,.35); z-index:59}
+.al{border:1px solid var(--border); border-left-width:3px; border-radius:8px; padding:10px 12px; margin-bottom:10px; background:var(--surface-2)}
+.al.crit{border-left-color:var(--crit)} .al.warn{border-left-color:var(--warn)} .al.info{border-left-color:var(--s1)} .al.serious{border-left-color:var(--serious)}
+.al .at{font-weight:650; font-size:13.5px; margin:5px 0 3px}
+.al .ad{font-size:12.5px; color:var(--ink-2)}
+.al .aa{font-size:12.5px; margin-top:5px}
+.toasts{position:fixed; right:18px; bottom:18px; z-index:80; display:flex; flex-direction:column; gap:8px; width:340px; max-width:calc(100vw - 36px)}
+.toastx{background:var(--surface-3); border:1px solid var(--border-2); border-left:3px solid var(--s1); border-radius:8px; padding:10px 12px; box-shadow:0 8px 24px rgba(0,0,0,.25); font-size:13px; animation:tin .2s ease}
+.toastx.crit{border-left-color:var(--crit)} .toastx.warn{border-left-color:var(--warn)} .toastx.good{border-left-color:var(--good)}
+@keyframes tin{from{transform:translateY(8px); opacity:0} to{transform:none; opacity:1}}
+.tipbox{position:fixed; z-index:100; pointer-events:none; background:var(--surface-3); border:1px solid var(--border-2); border-radius:8px; padding:8px 10px; font-size:12px; box-shadow:0 8px 22px rgba(0,0,0,.28); max-width:300px; color:var(--ink)}
+.tipbox .tt{font-weight:650; margin-bottom:4px}
+.tipbox .tr2{display:flex; justify-content:space-between; gap:14px}
+.tipbox .tr2 b{font-weight:650}
+.tipbox .tr2 span{color:var(--ink-3)}
+
+/* ---------- copilot ---------- */
+.chat{display:flex; flex-direction:column; height:520px}
+@media (min-width:1200px){ .chat{height:700px} }
+.chat-log{flex:1; overflow-y:auto; padding:4px 2px 8px; display:flex; flex-direction:column; gap:10px}
+.msg{max-width:88%; padding:9px 12px; border-radius:10px; font-size:13.5px; line-height:1.5; white-space:pre-line}
+.msg.u{align-self:flex-end; background:var(--brand); color:var(--brand-ink); border-bottom-right-radius:3px}
+.msg.b{align-self:flex-start; background:var(--surface-2); border:1px solid var(--border); border-bottom-left-radius:3px}
+.msg.b.blocked{border-color:var(--serious)}
+.msg .src{font-size:11px; color:var(--ink-3); margin-top:6px; white-space:normal}
+.typing span{display:inline-block; width:6px; height:6px; margin-right:3px; border-radius:50%; background:var(--ink-3); animation:bl 1s infinite}
+.typing span:nth-child(2){animation-delay:.15s} .typing span:nth-child(3){animation-delay:.3s}
+@keyframes bl{0%,80%,100%{opacity:.25} 40%{opacity:1}}
+.sugg{display:flex; flex-wrap:wrap; gap:6px; margin:8px 0}
+.sugg button{border:1px solid var(--border-2); background:var(--surface-2); color:var(--ink-2); border-radius:999px; font-size:12px; padding:4px 10px; cursor:pointer}
+.sugg button:hover{color:var(--ink); border-color:var(--ink-3)}
+.chat-in{display:flex; gap:8px; border-top:1px solid var(--border); padding-top:10px}
+.chat-in input{flex:1; background:var(--surface-2); border:1px solid var(--border-2); border-radius:8px; color:var(--ink); padding:8px 10px; outline:none; font-size:13.5px}
+.guard{display:flex; gap:10px; align-items:flex-start; padding:8px 0; border-bottom:1px solid var(--border)}
+.guard:last-child{border-bottom:none}
+.guard i{color:var(--accent-text); font-size:16px; margin-top:1px}
+
+/* ---------- playbook ---------- */
+.phase{position:relative; border-radius:10px; padding:14px 16px; height:100%}
+.phase-h{display:flex; align-items:center; gap:10px; margin:-14px -16px 12px; padding:12px 16px; border-radius:10px 10px 0 0; font-weight:700; clip-path:polygon(0 0, calc(100% - 18px) 0, 100% 50%, calc(100% - 18px) 100%, 0 100%)}
+.ph1{background:#2b2b35; color:#fff} .ph2{background:#4a4a56; color:#fff} .ph3{background:var(--brand); color:var(--brand-ink)}
+.phase-h .d{font-size:19px}
+.ck{display:flex; gap:9px; padding:7px 0; border-bottom:1px solid var(--border); align-items:flex-start}
+.ck:last-child{border-bottom:none}
+.ck .ic{font-size:16px; margin-top:0}
+.ck .tx{flex:1; font-size:13px}
+.ck .ow{font-size:11px; color:var(--ink-3)}
+
+/* ---------- misc ---------- */
+.banner{display:flex; gap:12px; align-items:flex-start; background:var(--warn-bg); border:1px solid rgba(250,178,25,.35); border-radius:10px; padding:11px 14px; font-size:13px; margin-bottom:16px}
+.banner i{color:var(--warn-t); font-size:18px}
+.wave{display:flex; gap:3px; margin-top:8px}
+.wave div{flex:1; padding:7px 8px; font-size:11.5px; border-radius:4px; background:var(--surface-3); color:var(--ink-2); position:relative}
+.wave div.done{background:rgba(var(--heat),.22); color:var(--ink)}
+.wave div.now{background:var(--brand); color:var(--brand-ink); font-weight:650}
+.steps{display:flex; gap:8px; flex-wrap:wrap}
+.step{flex:1 1 150px; background:var(--surface-2); border:1px solid var(--border); border-radius:8px; padding:10px 12px; position:relative}
+.step .n{font-size:10.5px; font-weight:700; letter-spacing:.1em; color:var(--accent-text)}
+.step .h{font-weight:650; font-size:13px; margin:2px 0}
+.step .d{font-size:12px; color:var(--ink-2)}
+.heat td.hc{text-align:right; font-variant-numeric:tabular-nums; border:2px solid var(--surface)}
+.chart-wrap{position:relative; width:100%}
+.legend-x{display:flex; flex-wrap:wrap; gap:14px; font-size:12px; color:var(--ink-2); margin-top:8px}
+.comm p{margin:0 0 9px; font-size:13.5px; line-height:1.55}
+.comm b{font-weight:650}
+.kbd{font-size:11px; border:1px solid var(--border-2); border-radius:4px; padding:0 5px; color:var(--ink-3)}
+:focus-visible{outline:2px solid var(--brand); outline-offset:2px}
+</style>
+</head>
+<body>
+<div id="app" v-cloak></div>
+
+<script>
+/* =====================================================================
+   GCPL TREASURY CONTROL TOWER — simulated data
+   All figures are illustrative for the CAFTA CC 2026 GCPL case.
+   INR crore unless stated. Group cash = INR 1,500 cr (Annex: 10% of revenue).
+   ===================================================================== */
+const { createApp, reactive, computed, markRaw, nextTick } = Vue;
+
+const FONT = '"Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif';
+const FX = { INR:1, BDT:0.72, GBP:112.0, EUR:95.5, USD:88.0, CAD:63.5, MXN:4.75, BRL:16.2, AED:23.96, ZAR:4.9 };
+const MIN_CASH = 800;          // entity operating buffers 550 + strategic reserve floor 250
+const RCF_TOTAL = 600;         // undrawn committed revolving credit
+const REGIONS = ['Asia','Europe','Americas','MEA'];
+
+const BANKS = [
+  { id:'HSBC',   name:'HSBC',                tier:'Tier 1 · global lead', rating:'AA-', minRating:'A',  capPct:35, maxTenor:12, longest:9, rcf:250, feed:'API + camt.053', col:'s1', header:'Europe header, India pool' },
+  { id:'Citi',   name:'Citi',                tier:'Tier 1 · global lead', rating:'A+',  minRating:'A',  capPct:35, maxTenor:12, longest:6, rcf:250, feed:'API + camt.053', col:'s2', header:'Americas and MEA headers' },
+  { id:'SCB',    name:'Standard Chartered',  tier:'Tier 2 · regional',    rating:'A+',  minRating:'A-', capPct:15, maxTenor:6,  longest:6, rcf:100, feed:'API + camt.053', col:'s3', header:'Back-up bank in 11 markets' },
+  { id:'SB',     name:'Standard Bank',       tier:'Tier 3 · local',       rating:'BB-', minRating:'A-', capPct:5,  maxTenor:3,  longest:3, rcf:0,   feed:'camt.052 + camt.053', col:'s4', exception:'Named exception (South Africa): no A-rated panel bank locally; cap lowered to 5%' },
+  { id:'Scotia', name:'Scotiabank',          tier:'Tier 3 · local',       rating:'A+',  minRating:'A-', capPct:15, maxTenor:6,  longest:3, rcf:0,   feed:'camt.053 (end of day)', col:'s5' },
+  { id:'Legacy', name:'Legacy banks (7, exiting)', tier:'Exit by month 24', rating:'—', capPct:null, runoff:true, feed:'MT940 / portal, weekly', col:'neutral' },
+];
+const INVEST = [
+  { id:'MMF1', name:'AAA liquid fund A', kind:'Money market fund', rating:'AAA', capPct:10, amount:105, tenor:'Daily', col:'s6' },
+  { id:'MMF2', name:'AAA liquid fund B', kind:'Money market fund', rating:'AAA', capPct:10, amount:75,  tenor:'Daily', col:'s6' },
+  { id:'TB',   name:'T-bills and G-secs', kind:'Sovereign', rating:'Sovereign', capPct:null, amount:70, tenor:'91–364 days', col:'s6' },
+];
+
+// 15 operating entities. banks = deposit balances (INR cr). invest = held by GTC Mumbai.
+const ENT = [
+ { code:'IN', name:'GCPL India', country:'India', region:'Asia', ccy:'INR', banks:{HSBC:150,Citi:40,SCB:70,Legacy:10}, invest:250, buffer:180, pooled:true, hub:true, pool:'India pool · HSBC (INR, onshore)', intra:1.8, fcNet:42.0, miss:-3.1, fcErr:8.1, stp:88, recon:97, pay:1020, payVal:152, acc:4, accT:3, feeBase:4.2, feeCut:26, nic:4.1, hedgeIn:true, findings:0, pos:[9,2] },
+ { code:'BD', name:'GCPL Bangladesh', country:'Bangladesh', region:'Asia', ccy:'BDT', banks:{HSBC:15,Citi:5,SCB:22,Legacy:3}, buffer:25, pooled:false, pool:'In-country only (BDT)', intra:-0.6, fcNet:2.1, miss:6.2, fcErr:13.5, stp:79, recon:88, pay:164, payVal:16, acc:2, accT:2, feeBase:0.6, feeCut:15, nic:0.3, hedgeIn:true, findings:0, pos:[10,2] },
+ { code:'UK', name:'GCPL UK', country:'United Kingdom', region:'Europe', ccy:'GBP', banks:{HSBC:70,Citi:20,SCB:25,Legacy:5}, buffer:40, pooled:true, hub:true, pool:'Europe header · HSBC London', intra:3.2, fcNet:9.6, miss:2.4, fcErr:9.2, stp:91, recon:98, pay:236, payVal:38, acc:2, accT:2, feeBase:1.8, feeCut:28, nic:1.2, hedgeIn:true, findings:0, pos:[5,0] },
+ { code:'DE', name:'GCPL Germany', country:'Germany', region:'Europe', ccy:'EUR', banks:{HSBC:55,Citi:15,SCB:20,Legacy:5}, buffer:30, pooled:true, pool:'Europe header · HSBC London', intra:2.1, fcNet:6.8, miss:-1.8, fcErr:8.8, stp:90, recon:97, pay:168, payVal:22, acc:2, accT:2, feeBase:1.4, feeCut:27, nic:0.9, hedgeIn:true, findings:0, pos:[6,1] },
+ { code:'FR', name:'GCPL France', country:'France', region:'Europe', ccy:'EUR', banks:{HSBC:42,Citi:10,SCB:14,Legacy:4}, buffer:25, pooled:true, pool:'Europe header · HSBC London', intra:-1.4, fcNet:4.1, miss:4.9, fcErr:10.4, stp:89, recon:95, pay:122, payVal:14, acc:2, accT:2, feeBase:1.1, feeCut:24, nic:0.6, hedgeIn:true, findings:0, pos:[5,1] },
+ { code:'IT', name:'GCPL Italy', country:'Italy', region:'Europe', ccy:'EUR', banks:{HSBC:26,Citi:6,SCB:9,Legacy:4}, buffer:15, pooled:true, pool:'Europe header · HSBC London', intra:0.8, fcNet:2.4, miss:-7.5, fcErr:12.6, stp:86, recon:91, pay:74, payVal:8, acc:2, accT:2, feeBase:0.8, feeCut:19, nic:0.4, hedgeIn:true, findings:0, pos:[6,2] },
+ { code:'ES', name:'GCPL Spain', country:'Spain', region:'Europe', ccy:'EUR', banks:{HSBC:30,Citi:8,Legacy:2}, buffer:15, pooled:true, pool:'Europe header · HSBC London', intra:1.1, fcNet:2.2, miss:3.3, fcErr:11.3, stp:88, recon:94, pay:61, payVal:6, acc:2, accT:2, feeBase:0.7, feeCut:25, nic:0.4, hedgeIn:true, findings:0, pos:[4,1] },
+ { code:'NL', name:'GCPL Netherlands', country:'Netherlands', region:'Europe', ccy:'EUR', banks:{HSBC:44,Citi:9,Legacy:2}, buffer:15, pooled:true, pool:'Europe header · HSBC London', intra:2.6, fcNet:3.5, miss:1.2, fcErr:7.9, stp:92, recon:99, pay:58, payVal:6, acc:2, accT:2, feeBase:0.6, feeCut:29, nic:0.5, hedgeIn:true, findings:0, pos:[6,0] },
+ { code:'IE', name:'GCPL Ireland', country:'Ireland', region:'Europe', ccy:'EUR', banks:{Scotia:28,Legacy:2}, buffer:15, pooled:false, pool:'Joins Europe header next month (Wave 3)', intra:0, intraNote:'End of day only (Scotiabank)', fcNet:1.6, miss:-8.8, fcErr:14.8, stp:81, recon:84, pay:23, payVal:2, acc:2, accT:1, feeBase:0.4, feeCut:12, nic:0.1, hedgeIn:true, findings:1, pos:[4,0] },
+ { code:'US', name:'GCPL USA', country:'United States', region:'Americas', ccy:'USD', banks:{HSBC:25,Citi:120,SCB:30,Legacy:5}, buffer:50, pooled:true, hub:true, pool:'Americas header · Citi New York', intra:0, intraNote:'Intraday feed starts at US open (18:30 IST)', fcNet:12.4, miss:-2.6, fcErr:9.6, stp:85, recon:95, pay:344, payVal:74, acc:3, accT:2, feeBase:2.4, feeCut:24, nic:2.2, hedgeIn:true, findings:0, pos:[1,1] },
+ { code:'CA', name:'GCPL Canada', country:'Canada', region:'Americas', ccy:'CAD', banks:{Citi:14,SCB:2,Scotia:24}, buffer:15, pooled:true, pool:'Americas header · Citi New York', intra:0, intraNote:'Intraday feed starts at market open', fcNet:2.0, miss:5.1, fcErr:10.9, stp:83, recon:93, pay:71, payVal:10, acc:2, accT:2, feeBase:0.6, feeCut:18, nic:0.3, hedgeIn:true, findings:0, pos:[1,0] },
+ { code:'MX', name:'GCPL Mexico', country:'Mexico', region:'Americas', ccy:'MXN', banks:{HSBC:8,Citi:30,SCB:8,Legacy:4}, buffer:35, pooled:false, pool:'In-country only (MXN)', intra:0, intraNote:'Intraday feed starts at market open', fcNet:6.3, miss:-14.2, fcErr:17.2, stp:72, recon:86, pay:118, payVal:14, acc:3, accT:2, feeBase:1.0, feeCut:14, nic:0.8, hedgeIn:true, findings:0, pos:[1,2] },
+ { code:'BR', name:'GCPL Brazil', country:'Brazil', region:'Americas', ccy:'BRL', banks:{HSBC:10,Citi:40,SCB:12,Legacy:8}, buffer:35, pooled:false, pool:'In-country only (BRL)', intra:0, intraNote:'Intraday feed starts at market open', fcNet:4.4, miss:9.4, fcErr:19.4, stp:61, recon:79, pay:122, payVal:20, acc:3, accT:2, feeBase:1.2, feeCut:11, nic:0.2, hedgeIn:false, findings:1, pos:[2,3] },
+ { code:'AE', name:'GCPL UAE', country:'UAE', region:'MEA', ccy:'AED', banks:{HSBC:10,Citi:45,SCB:28,Legacy:2}, buffer:25, pooled:true, hub:true, pool:'MEA header · Citi Dubai', intra:1.2, fcNet:5.2, miss:11.6, fcErr:13.1, stp:82, recon:92, pay:168, payVal:22, acc:2, accT:2, feeBase:0.7, feeCut:21, nic:0.5, hedgeIn:true, findings:0, pos:[8,1] },
+ { code:'ZA', name:'GCPL South Africa', country:'South Africa', region:'MEA', ccy:'ZAR', banks:{SB:48,Legacy:7}, buffer:30, pooled:false, pool:'In-country only (ZAR)', intra:0.9, fcNet:3.0, miss:-6.9, fcErr:15.6, stp:74, recon:85, pay:91, payVal:8, acc:3, accT:2, feeBase:0.5, feeCut:16, nic:0.1, hedgeIn:true, findings:0, pos:[6,4] },
+];
+const HUB_OF = { Europe:'UK', Americas:'US', MEA:'AE', Asia:'IN' };
+
+// helpers on data
+const sum = a => a.reduce((s,x)=>s+(+x||0),0);
+const mean = a => a.length ? sum(a)/a.length : 0;
+const entBank = e => sum(Object.values(e.banks));
+const entCash = e => entBank(e) + (e.invest||0);
+const entIntra = e => Math.round((entCash(e) + (entBank(e)-(e.banks.Legacy||0))*e.intra/100)*10)/10;
+const idleOf = e => e.pooled ? 0 : Math.max(0, entCash(e) - e.buffer);
+const GROUP_CASH = sum(ENT.map(entCash));            // 1,500
+const INR_CASH = sum(ENT.filter(e=>e.ccy==='INR').map(entCash)); // 520
+const bankTotal = (id, ents=ENT) => sum(ents.map(e=>e.banks[id]||0));
+const regionOf = c => ENT.find(e=>e.code===c).region;
+
+// counterparties (group-level limits as % of group cash)
+const COUNTERPARTIES = [
+  ...BANKS.map(b => ({ ...b, amount: bankTotal(b.id), type:'bank' })),
+  ...INVEST.map(i => ({ ...i, type:'invest', tier:i.kind })),
+].map(c => {
+  const share = c.amount / GROUP_CASH * 100;
+  const capAmt = c.capPct ? GROUP_CASH * c.capPct / 100 : null;
+  const util = c.capPct ? share / c.capPct * 100 : null;
+  return { ...c, share, capAmt, util };
+});
+const cpOf = id => COUNTERPARTIES.find(c=>c.id===id);
+
+/* ---------- 13/26-week cash flows (group) ---------- */
+const RUN = (() => {
+  const R=[292,286,295,301,288,290,296,284,293,300,306,302,298, 296,291,299,304,290,293,301,297,288,305,309,303,311];
+  const P=[270,266,262,268,276,264,270,282,258,236,242,246,240, 250,258,252,255,268,250,256,254,262,250,252,256,270];
+  const payroll=[0,46,0,0,0,46,0,0,0,46,0,0,0, 0,46,0,0,0,46,0,0,0,46,0,0,0];
+  const tax=Array(26).fill(0); tax[8]=225; tax[20]=190;
+  const div=Array(26).fill(0); div[8]=364;
+  const capex=Array(26).fill(12);
+  const debt=Array(26).fill(0); debt[4]=18; debt[12]=18; debt[17]=18; debt[25]=18;
+  const net=[], fc=[]; let c=GROUP_CASH;
+  for(let k=0;k<26;k++){ const n=R[k]-P[k]-payroll[k]-tax[k]-div[k]-capex[k]-debt[k]; net.push(n); c+=n; fc.push(c); }
+  const events = { 2:'Month-end payroll ₹46 cr', 5:'Debt service ₹18 cr', 6:'Month-end payroll ₹46 cr', 8:'GST and supplier run', 9:'Advance tax ₹225 cr + interim dividend ₹364 cr', 10:'Month-end payroll ₹46 cr', 13:'Debt service ₹18 cr' };
+  return { R,P,payroll,tax,div,capex,debt,net,fc,events };
+})();
+const bandPct = w => (1.5 + 0.62*w)/100;   // 90% band half-width grows with horizon
+const ACT = [1452,1488,1431,1476,1500];      // W-4..today
+const PRIOR = [1440,1470,1466,1484];          // what had been forecast for W-4..W-1
+const LOW = (() => { const fc=RUN.fc.slice(0,13); const v=Math.min(...fc); const w=fc.indexOf(v)+1; const lo=Math.round(v*(1-bandPct(w))); return { v, w, lo, head:v-MIN_CASH, headLo:lo-MIN_CASH }; })();
+
+/* ---------- FX exposures (net after intercompany netting), INR cr by bucket ---------- */
+const BUCKETS = ['0–3 m','3–6 m','6–9 m','9–12 m'];
+const TARGET = [75,50,35,25];
+const BAND = TARGET.map(t => [t-10, t+10]);
+const FXEXP = [
+  { pair:'USD/INR', region:'Asia', who:'India (imports)', net:[540,520,500,480], ratio:[78,52,33,24] },
+  { pair:'EUR/INR', region:'Asia', who:'India (exports to EU)', net:[120,115,110,105], ratio:[80,57,40,30] },
+  { pair:'USD/BDT', region:'Asia', who:'Bangladesh', net:[35,32,30,28], ratio:[66,41,26,15] },
+  { pair:'EUR/GBP', region:'Europe', who:'UK (EU purchases)', net:[210,200,190,180], ratio:[74,55,36,34] },
+  { pair:'USD/EUR', region:'Europe', who:'Euro entities (USD inputs)', net:[90,85,80,75], ratio:[70,48,30,20] },
+  { pair:'USD/BRL', region:'Americas', who:'Brazil', net:[80,75,70,65], ratio:[52,38,30,22] },
+  { pair:'USD/MXN', region:'Americas', who:'Mexico', net:[95,90,85,80], ratio:[72,50,34,26] },
+  { pair:'USD/CAD', region:'Americas', who:'Canada', net:[60,55,50,45], ratio:[76,46,31,18] },
+  { pair:'USD/ZAR', region:'MEA', who:'South Africa', net:[45,42,40,38], ratio:[68,44,27,16] },
+  { pair:'USD/AED', region:'MEA', who:'UAE', net:[70,65,60,55], ratio:[0,0,0,0], exempt:true },
+].map(p => ({ ...p, gross: p.net.map(n=>Math.round(n/0.65)), cells: p.ratio.map((r,i)=> p.exempt ? 'exempt' : (r < BAND[i][0] ? 'under' : r > BAND[i][1] ? 'over' : 'in')) }));
+const pairHedged = p => p.exempt ? 0 : sum(p.net.map((n,i)=>n*p.ratio[i]/100));
+const pairOk = p => p.exempt || p.cells.every(c=>c==='in');
+
+/* ---------- payment factory ---------- */
+const HOURLY = { labels:['08','09','10','11','12','13','14','15','16'], vals:[96,182,264,318,296,244,287,341,393] };
+const PIPE = [ ['Received from ERPs',2840], ['Validated',2802], ['Sanctions screened',2802], ['Approved (dual)',2604], ['Sent to bank (pain.001)',2421], ['Acknowledged (pain.002)',2388] ];
+const EXC_TYPES = [ ['ERP format / schema error',11], ['Invalid account or IBAN',7], ['Regulatory code missing',6], ['Duplicate suspected',5], ['Confirmation of Payee mismatch',3], ['Funding shortfall in pool',3], ['Cut-off missed',2], ['Sanctions potential match (held)',1] ];
+const EXCEPTIONS = [
+  { id:'PX-24830', ent:'AE', amt:'AED 412k', type:'Sanctions potential match: 87% name similarity to a listed party', age:'2h 05m', owner:'Risk & Control', sev:'crit', status:'Held' },
+  { id:'PX-24817', ent:'BR', amt:'BRL 1.82 mn', type:'Beneficiary tax ID (CNPJ) invalid', age:'3h 10m', owner:'TSSC · AP', sev:'warn', status:'Open' },
+  { id:'PX-24822', ent:'IN', amt:'INR 3.40 cr', type:'Duplicate suspected (same vendor and amount, 2 days)', age:'1h 05m', owner:'TSSC · AP', sev:'warn', status:'Open' },
+  { id:'PX-24836', ent:'MX', amt:'MXN 2.10 mn', type:'Funding shortfall in in-country pool', age:'45m', owner:'Americas desk', sev:'warn', status:'Open' },
+  { id:'PX-24841', ent:'DE', amt:'EUR 186k', type:'Invalid IBAN checksum', age:'38m', owner:'TSSC · AP', sev:'info', status:'Open' },
+  { id:'PX-24845', ent:'IN', amt:'INR 0.80 cr', type:'Purpose code missing on outward remittance', age:'32m', owner:'TSSC · AP', sev:'info', status:'Open' },
+  { id:'PX-24851', ent:'US', amt:'USD 92k', type:'pain.001 schema validation failed (ERP export)', age:'28m', owner:'IT · ERP team', sev:'info', status:'Open' },
+  { id:'PX-24856', ent:'ZA', amt:'ZAR 1.40 mn', type:'Balance-of-payments category missing', age:'21m', owner:'TSSC · AP', sev:'info', status:'Open' },
+  { id:'PX-24860', ent:'UK', amt:'GBP 54k', type:'Confirmation of Payee: name mismatch', age:'14m', owner:'TSSC · AP', sev:'warn', status:'Open' },
+  { id:'PX-24863', ent:'BD', amt:'BDT 6.20 mn', type:'Bank cut-off missed, next value date', age:'1h 40m', owner:'Asia desk', sev:'warn', status:'Open' },
+];
+const SANCTIONS = [
+  { party:'Northbridge Logistics Ltd', ent:'AE', score:87, result:'Held for review', s:'crit' },
+  { party:'Meridian Supplies', ent:'IN', score:81, result:'Cleared · false positive (12 min)', s:'good' },
+  { party:'Orion Packaging', ent:'DE', score:79, result:'Cleared · false positive (9 min)', s:'good' },
+  { party:'Delta Freight Services', ent:'US', score:83, result:'Cleared · false positive (21 min)', s:'good' },
+  { party:'Polar Chemicals', ent:'BR', score:78, result:'Cleared · false positive (26 min)', s:'good' },
+  { party:'Crescent Agro Ltd', ent:'BD', score:80, result:'Cleared · false positive (18 min)', s:'good' },
+];
+const CUTOFFS = [
+  { ccy:'BDT', bank:'HSBC Dhaka', rail:'BD-RTGS', local:'15:30 Dhaka', ist:15*60, pending:4, val:'BDT 6.2 mn', region:'Asia' },
+  { ccy:'AED', bank:'Citi Dubai', rail:'UAEFTS', local:'14:30 Dubai', ist:16*60, pending:0, val:'—', region:'MEA' },
+  { ccy:'INR', bank:'HSBC India', rail:'RTGS / NEFT bulk', local:'17:30 Mumbai', ist:17*60+30, pending:46, val:'INR 22.4 cr', region:'Asia' },
+  { ccy:'ZAR', bank:'Standard Bank', rail:'SAMOS', local:'15:00 Johannesburg', ist:18*60+30, pending:9, val:'ZAR 3.1 mn', region:'MEA' },
+  { ccy:'EUR', bank:'HSBC (Europe header)', rail:'T2 / SEPA', local:'16:00 Frankfurt', ist:19*60+30, pending:31, val:'EUR 2.6 mn', region:'Europe', note:'3 urgent awaiting 2nd approval' },
+  { ccy:'GBP', bank:'HSBC UK', rail:'CHAPS', local:'16:30 London', ist:21*60, pending:18, val:'GBP 0.9 mn', region:'Europe' },
+  { ccy:'BRL', bank:'Citi São Paulo', rail:'STR', local:'16:30 São Paulo', ist:25*60, pending:12, val:'BRL 4.0 mn', region:'Americas' },
+  { ccy:'CAD', bank:'Citi Canada', rail:'Lynx', local:'16:00 Toronto', ist:25*60+30, pending:8, val:'CAD 0.7 mn', region:'Americas' },
+  { ccy:'USD', bank:'Citi New York', rail:'Fedwire', local:'17:00 New York', ist:26*60+30, pending:52, val:'USD 6.8 mn', region:'Americas' },
+  { ccy:'MXN', bank:'Citi Mexico', rail:'SPEI', local:'17:00 Mexico City', ist:28*60+30, pending:14, val:'MXN 9.5 mn', region:'Americas' },
+];
+
+/* ---------- bank fee audit (camt.086), last quarter, INR lakh ---------- */
+const FEE_BANKS = [
+  { bank:'HSBC',   camt:'Live', freq:'Monthly', billed:132.0, over:8.3,  lines:7940, exc:12 },
+  { bank:'Citi',   camt:'Live', freq:'Monthly', billed:108.0, over:10.6, lines:6210, exc:19 },
+  { bank:'SCB',    camt:'Live', freq:'Monthly', billed:58.0,  over:1.7,  lines:3480, exc:6 },
+  { bank:'SB',     camt:'Live', freq:'Monthly', billed:14.0,  over:0,    lines:410,  exc:0 },
+  { bank:'Scotia', camt:'Go-live next month', freq:'Manual sample check', billed:12.0, over:null, lines:380, exc:0 },
+  { bank:'Legacy', camt:'Not available (PDF invoices)', freq:'Manual, quarterly', billed:24.0, over:null, lines:0, exc:0 },
+];
+const FEE_EXC = [
+  { id:'F-0912', bank:'Citi', ent:'BR', svc:'FX conversion margin above agreed spread', vol:'BRL 18.0 mn converted', billed:'0.45%', tariff:'0.25%', over:5.83, status:'Open' },
+  { id:'F-0907', bank:'HSBC', ent:'DE', svc:'SEPA payments billed at urgent rate', vol:'420 payments', billed:'₹1,140 each', tariff:'₹19 each', over:4.71, status:'Open' },
+  { id:'F-0915', bank:'Citi', ent:'US', svc:'Connectivity fee billed twice (bank and SWIFT bureau)', vol:'1 month', billed:'₹3.10 L', tariff:'₹0', over:3.10, status:'Claim raised' },
+  { id:'F-0903', bank:'HSBC', ent:'IT', svc:'Maintenance fee on account closed in month 15', vol:'3 months', billed:'₹60,000 / month', tariff:'₹0', over:1.80, status:'Open' },
+  { id:'F-0918', bank:'SCB', ent:'AE', svc:'Statement fee charged despite tariff waiver', vol:'3 months', billed:'₹38,000 / month', tariff:'₹0', over:1.14, status:'Open' },
+  { id:'F-0921', bank:'Citi', ent:'CA', svc:'Lynx wire fee above tariff', vol:'210 payments', billed:'₹1,650 each', tariff:'₹1,200 each', over:0.95, status:'Open' },
+  { id:'F-0909', bank:'HSBC', ent:'UK', svc:'Zero-balancing sweep fee above tariff', vol:'62 sweeps', billed:'₹2,450 each', tariff:'₹1,000 each', over:0.90, status:'Credited' },
+  { id:'F-0911', bank:'HSBC', ent:'NL', svc:'Account maintenance above tariff', vol:'3 months', billed:'₹42,000 / month', tariff:'₹30,000 / month', over:0.36, status:'Open' },
+  { id:'F-0919', bank:'SCB', ent:'IN', svc:'Courier charge on e-statements', vol:'3 months', billed:'₹12,000 / month', tariff:'₹0', over:0.36, status:'Open' },
+  { id:'F-0924', bank:'Citi', ent:'MX', svc:'SPEI high-value wire fee above tariff', vol:'1,240 payments', billed:'₹46 each', tariff:'₹27 each', over:0.24, status:'Open' },
+];
+
+const FEE_OVER = sum(FEE_BANKS.map(b=>b.over||0)), FEE_AUDITED = sum(FEE_BANKS.filter(b=>b.over!=null).map(b=>b.billed));
+const FEE_OK = 100 - FEE_OVER/FEE_AUDITED*100;
+
+/* ---------- GIFT City GRCTC in-house bank ---------- */
+const IHB = [
+  { ent:'US', dir:'Loan to', ccy:'USD', mn:8.0, rate:'5.85%', bench:'SOFR + 155 bp', replaces:'Local revolver at 6.90%', saving:0.74, tax:'Signed off', s:'good', tenor:'12 m' },
+  { ent:'MX', dir:'Loan to', ccy:'USD', mn:4.5, rate:'6.60%', bench:'SOFR + 230 bp', replaces:'MXN line at 10.8% (hedged by GRCTC)', saving:0.96, tax:'Signed off', s:'good', tenor:'12 m' },
+  { ent:'CA', dir:'Loan to', ccy:'CAD', mn:3.0, rate:'4.10%', bench:'CORRA + 180 bp', replaces:'Overdraft at 6.2%', saving:0.40, tax:'Review pending', s:'warn', tenor:'6 m' },
+  { ent:'BD', dir:'Loan to', ccy:'USD', mn:2.0, rate:'6.90%', bench:'SOFR + 260 bp', replaces:'Local borrowing at 11.5%', saving:0.81, tax:'Awaiting central-bank registration', s:'warn', tenor:'12 m' },
+  { ent:'AE', dir:'Deposit from', ccy:'USD', mn:6.0, rate:'4.45%', bench:'SOFR + 15 bp', replaces:'Call deposit at 3.20%', saving:0.66, tax:'Signed off', s:'good', tenor:'3 m rolling' },
+  { ent:'UK', dir:'Deposit from', ccy:'EUR', mn:5.0, rate:'2.15%', bench:'€STR + 20 bp', replaces:'Europe header surplus at 1.40%', saving:0.36, tax:'Signed off', s:'good', tenor:'3 m rolling' },
+].map(r => ({ ...r, cr: Math.round(r.mn*FX[r.ccy]*10)/100 }));
+
+/* ---------- KPI scorecard (slide XV) ---------- */
+function kpiStatus(v, m12, m24, dir){
+  const g=(m12+m24)/2, ok=(a,b)=> dir>0 ? a>=b-1e-9 : a<=b+1e-9;
+  if(ok(v,m24)) return { s:'good', t:'Target met' };
+  if(ok(v,g))   return { s:'good', t:'On track' };
+  if(ok(v,m12)) return { s:'warn', t:'Watch' };
+  return { s:'crit', t:'Behind' };
+}
+const pctOf = (ents, f) => sum(ents.map(f))/Math.max(1e-9, sum(ents.map(entCash)))*100;
+const KPIS = [
+ { id:'vis', area:'Visibility', name:'Cash visibility', def:'Group balances in the daily view', base:'~40%, weekly', t12:'80%', t24:'≥ 95%, daily', review:'Daily', dir:1, m12:80, m24:95, b0:40,
+   agg:(es)=>{ const v=100-pctOf(es,e=>e.banks.Legacy||0); return { v, text:v.toFixed(1)+'%' }; },
+   ent:(e)=>{ const v=100-(e.banks.Legacy||0)/entCash(e)*100; return { v, text:v.toFixed(1)+'%' }; } },
+ { id:'fc', area:'Visibility', name:'Forecast accuracy', def:'13-week forecast vs actual cash', base:'±25%', t12:'±15%', t24:'±10%', review:'Monthly', dir:-1, m12:15, m24:10, b0:25,
+   agg:(es)=>{ const v=mean(es.map(e=>e.fcErr)); return { v, text:'±'+v.toFixed(1)+'%' }; },
+   ent:(e)=>({ v:e.fcErr, text:'±'+e.fcErr.toFixed(1)+'%' }) },
+ { id:'idle', area:'Liquidity', name:'Idle cash', def:'Cash not pooled, invested or used', base:'~33% of cash', t12:'15%', t24:'< 5%', review:'Weekly', dir:-1, m12:15, m24:5, b0:33,
+   agg:(es)=>{ const v=pctOf(es,idleOf); return { v, text:v.toFixed(1)+'%', sub:'₹'+sum(es.map(idleOf))+' cr' }; },
+   ent:(e)=>{ const v=idleOf(e)/entCash(e)*100; return { v, text:v.toFixed(1)+'%', sub:'₹'+idleOf(e)+' cr' }; } },
+ { id:'nic', area:'Liquidity', name:'Net interest cost', def:'Interest paid minus interest earned', base:'Baseline', t12:'–INR 8 cr', t24:'–INR 16 cr', review:'Monthly', dir:1, m12:8, m24:16, b0:0,
+   agg:(es, grp)=>{ const v=sum(es.map(e=>e.nic)); return { v, text:'–₹'+v.toFixed(1)+' cr', sub: grp?'annualised vs baseline':'regional share of the group saving', st: grp?null:{ s:'info', t:'Contribution' } }; },
+   ent:(e)=>({ v:e.nic, text:'–₹'+e.nic.toFixed(1)+' cr', noStatus:true, sub:'contribution' }) },
+ { id:'banks', area:'Cost', name:'Banks / accounts', def:'Banking partners / bank accounts', base:'25+ / 75+', t12:'12 / 45', t24:'≤ 5 / ≤ 30', review:'Quarterly', dir:-1, m12:45, m24:30, b0:75,
+   agg:(es, grp)=>{ const acc=sum(es.map(e=>e.acc)); if(grp){ const bs=kpiStatus(12,12,5,-1), as=kpiStatus(acc,45,30,-1); const worst=[bs,as].find(x=>x.s!=='good')||as; return { v:acc, text:'12 / '+acc, sub:'5 panel + 7 legacy in exit', st:worst }; } const tgt=sum(es.map(e=>e.accT)); return { v:acc, text:acc+' accounts', sub:'target '+tgt, st: acc<=tgt?{s:'good',t:'Target met'}:{s:'warn',t:'Watch'} }; },
+   ent:(e)=>({ v:e.acc, text:e.acc+' / '+e.accT, sub:'accounts / target', st: e.acc<=e.accT?{s:'good',t:'Target met'}:{s:'warn',t:'Watch'} }) },
+ { id:'fees', area:'Cost', name:'Bank fees', def:'Fees vs baseline; billed vs tariff', base:'INR 18 cr, unchecked', t12:'–15%, audited', t24:'–30%, all in tariff', review:'Quarterly', dir:1, m12:15, m24:30, b0:0,
+   agg:(es)=>{ const base=sum(es.map(e=>e.feeBase)); const v=sum(es.map(e=>e.feeBase*e.feeCut))/base; return { v, text:'–'+v.toFixed(1)+'%', sub:FEE_OK.toFixed(0)+'% of audited fees within tariff' }; },
+   ent:(e)=>({ v:e.feeCut, text:'–'+e.feeCut+'%' }) },
+ { id:'stp', area:'Efficiency', name:'STP rate', def:'Payments with no manual touch', base:'~30%', t12:'70%', t24:'≥ 90%', review:'Monthly', dir:1, m12:70, m24:90, b0:30,
+   agg:(es)=>{ const v=sum(es.map(e=>e.stp*e.pay))/sum(es.map(e=>e.pay)); return { v, text:v.toFixed(1)+'%' }; },
+   ent:(e)=>({ v:e.stp, text:e.stp+'%' }) },
+ { id:'recon', area:'Efficiency', name:'Reconciliation', def:'Accounts reconciled by next day', base:'~40%', t12:'85%', t24:'100%', review:'Daily', dir:1, m12:85, m24:100, b0:40,
+   agg:(es)=>{ const v=mean(es.map(e=>e.recon)); return { v, text:v.toFixed(1)+'%' }; },
+   ent:(e)=>({ v:e.recon, text:e.recon+'%' }) },
+ { id:'sanc', area:'Risk and compliance', name:'Sanctions screening', def:'Payments screened before release', base:'Partial', t12:'100%', t24:'100%', review:'Daily', dir:1, m12:100, m24:100, b0:55,
+   agg:()=>({ v:100, text:'100%', sub:'6 potential matches today, 1 held' }),
+   ent:()=>({ v:100, text:'100%' }) },
+ { id:'lim', area:'Risk and compliance', name:'Counterparty limits', def:'Breaches of bank and investment limits', base:'Not tracked', t12:'< 3 a quarter', t24:'Zero', review:'Daily', dir:-1, m12:2, m24:0, b0:6,
+   agg:()=>({ v:2, text:'2 this quarter', sub:'1 open: Standard Chartered' }),
+   ent:(e)=>({ v:e.banks.SCB||0, text: e.banks.SCB ? '₹'+e.banks.SCB+' cr at SCB' : '—', noStatus:true, sub:'share of open breach' }) },
+ { id:'fx', area:'Risk and compliance', name:'FX hedge ratio', def:'Exposure hedged vs policy band', base:'Ad hoc', t12:'2 regions in band', t24:'All in band', review:'Monthly', dir:1, m12:2, m24:4, b0:0,
+   agg:(es, grp, regs)=>{ const rs=regs.filter(r=>FXEXP.filter(p=>p.region===r).every(pairOk)).length; if(grp) return { v:rs, text:rs+' of 4 regions', sub:'Americas out: BRL under-hedged' }; const ok=rs===regs.length; return { v:rs, text: ok?'In band':'Out of band', st: ok?{s:'good',t:'In band'}:{s:'crit',t:'Out of band'} }; },
+   ent:(e)=>({ v:e.hedgeIn?1:0, text:e.hedgeIn?'In band':'Out of band', st: e.hedgeIn?{s:'good',t:'In band'}:{s:'crit',t:'Out of band'} }) },
+ { id:'pol', area:'Risk and compliance', name:'Policy compliance', def:'High-risk audit findings', base:'No group policy', t12:'Policy live', t24:'Zero', review:'Quarterly', dir:-1, m12:3, m24:0, b0:9,
+   agg:(es)=>{ const v=sum(es.map(e=>e.findings)); return { v, text: v+' open finding'+(v===1?'':'s'), sub:'policy live in all entities' }; },
+   ent:(e)=>({ v:e.findings, text:String(e.findings), st: e.findings? {s:'warn',t:'Finding open'}:{s:'good',t:'Clean'} }) },
+];
+function trendFor(k, cur){ // monthly M0..M18 path from baseline to current, deterministic wobble
+  const out=[]; for(let m=0;m<=18;m++){ const t=m/18; const s=t*t*(3-2*t); const w=Math.sin(m*1.7+k.id.length)*0.035*Math.abs(cur-k.b0); out.push(k.b0+(cur-k.b0)*s + (m===0||m===18?0:w)); } return out;
+}
+
+/* ---------- Treasury-in-a-box ---------- */
+const PLAYBOOK = [
+  { day:1, label:'Day 1', title:'Control the cash', items:[
+    { t:'Change signatories to the group-approved list', o:'GTC', sys:'BAM', done:1 },
+    { t:'Switch on sanctions screening for every payment', o:'Risk & Control', sys:'TMS screening', done:1 },
+    { t:'Freeze new account openings (GTC approval only)', o:'GTC', sys:'BAM', done:1 },
+    { t:'Inventory banks, accounts, debt and guarantees', o:'Entity CFO', sys:'Control Tower', done:3 },
+    { t:'Add balances to the weekly group cash report', o:'TSSC', sys:'Bank portals', done:5 } ] },
+  { day:30, label:'Day 30', title:'Connect to the platform', items:[
+    { t:'Map 11 accounts to panel banks (target 3)', o:'GTC', sys:'BAM', done:24 },
+    { t:'Connect statements to the TMS (camt.053)', o:'TSSC + IT', sys:'SWIFT channel', done:29 },
+    { t:'Onboard to the 13-week cash forecast', o:'Entity + GTC', sys:'TMS forecasting', done:31 },
+    { t:'Adopt interim limits and delegation of authority', o:'Treasury Committee', sys:'TMS limits', done:27 },
+    { t:'Complete KYC with the panel banks', o:'GTC', sys:'—', done:41 } ] },
+  { day:90, label:'Day 90', title:'Run it the group way', items:[
+    { t:'Join the cash pool where rules allow', o:'MEA desk', sys:'Cash pool', done:84 },
+    { t:'Route payments through the TSSC payment factory', o:'TSSC', sys:'Payment factory', done:78 },
+    { t:'Adopt the full group treasury policy suite', o:'Treasury Committee', sys:'Policy', done:88 },
+    { t:'Put KPIs live on the Control Tower', o:'Treasury PMO', sys:'Control Tower', done:86 },
+    { t:'Close legacy accounts after two clean months', o:'TSSC', sys:'BAM', done:96 } ] },
+];
+
+/* ---------- roles ---------- */
+const ALL_VIEWS = ['overview','cashmap','runway','counterparty','fx','payments','kpi','gift','fees','copilot','playbook','stress'];
+const ROLES = [
+  { id:'cfo',  label:'CFO',                     who:'Group CFO',            regions:REGIONS, views:ALL_VIEWS, home:'overview' },
+  { id:'gt',   label:'Group Treasurer',         who:'GTC Mumbai',           regions:REGIONS, views:ALL_VIEWS, home:'overview' },
+  { id:'asia', label:'Asia desk · GTC Mumbai',  who:'Regional desk',        regions:['Asia'], views:['overview','cashmap','runway','counterparty','fx','payments','kpi','gift','copilot','playbook'], home:'overview' },
+  { id:'eu',   label:'Europe desk · London',    who:'Regional desk',        regions:['Europe'], views:['overview','cashmap','runway','counterparty','fx','payments','kpi','gift','copilot','playbook'], home:'overview' },
+  { id:'am',   label:'Americas desk · New York',who:'Regional desk',        regions:['Americas'], views:['overview','cashmap','runway','counterparty','fx','payments','kpi','gift','copilot','playbook'], home:'overview' },
+  { id:'mea',  label:'MEA desk · Dubai',        who:'Regional desk',        regions:['MEA'], views:['overview','cashmap','runway','counterparty','fx','payments','kpi','gift','copilot','playbook'], home:'overview' },
+  { id:'risk', label:'Risk & Control',          who:'Middle office',        regions:REGIONS, views:['overview','counterparty','fx','payments','kpi','gift','fees','copilot','stress'], home:'counterparty' },
+  { id:'tssc', label:'TSSC · payment factory',  who:'Back office',          regions:REGIONS, views:['overview','cashmap','payments','kpi','fees','copilot','playbook'], home:'payments' },
+];
+const VIEWS = [
+  { id:'overview', label:'Overview', icon:'bi-speedometer2', grp:'ct', q:'' },
+  { id:'cashmap', label:'Global cash map', icon:'bi-globe2', grp:'ct', q:'Q·C' },
+  { id:'runway', label:'Liquidity runway', icon:'bi-graph-up', grp:'ct', q:'Q·D' },
+  { id:'counterparty', label:'Counterparty heatmap', icon:'bi-grid-3x3-gap', grp:'ct', q:'Q·B' },
+  { id:'fx', label:'FX exposure', icon:'bi-currency-exchange', grp:'ct', q:'Q·B' },
+  { id:'payments', label:'Payment factory', icon:'bi-send-check', grp:'ct', q:'Q·D' },
+  { id:'kpi', label:'KPI scorecard', icon:'bi-clipboard-data', grp:'ct', q:'Q·F' },
+  { id:'gift', label:'GIFT City GRCTC', icon:'bi-buildings', grp:'in', q:'Q·A' },
+  { id:'fees', label:'Bank fee audit', icon:'bi-receipt', grp:'in', q:'Q·C' },
+  { id:'copilot', label:'Treasury Copilot', icon:'bi-stars', grp:'in', q:'Q·G' },
+  { id:'playbook', label:'Treasury-in-a-box', icon:'bi-box-seam', grp:'in', q:'Q·G' },
+  { id:'stress', label:'Stress test', icon:'bi-lightning-charge', grp:'in', q:'Risks' },
+];
+
+/* ---------- palettes for charts (validated categorical order; status reserved) ---------- */
+const PAL = {
+  dark:{ ink:'#f0efec', ink2:'#c3c2b7', ink3:'#8f8e88', grid:'#2a2a33', axis:'#3a3a44', surface:'#1b1b23', tip:'#2d2d39', border:'rgba(255,255,255,.15)',
+    s1:'#3987e5', s2:'#d95926', s3:'#199e70', s4:'#c98500', s5:'#d55181', s6:'#9085e9', neutral:'#7d7c76',
+    good:'#0ca30c', warn:'#fab219', serious:'#ec835a', crit:'#d03b3b', band:'rgba(201,133,0,.22)', s1a:'rgba(57,135,229,.22)', s2a:'rgba(217,89,38,.55)',
+    seq:['#173257','#1a4583','#1f5fae','#2a78d6','#5598e7','#9ec5f4'], seqDarkInk:[4,5] },
+  light:{ ink:'#16161d', ink2:'#52514e', ink3:'#74736d', grid:'#e6e5df', axis:'#c3c2b7', surface:'#ffffff', tip:'#ffffff', border:'rgba(11,11,11,.17)',
+    s1:'#2a78d6', s2:'#eb6834', s3:'#1baf7a', s4:'#eda100', s5:'#e87ba4', s6:'#6250d6', neutral:'#a3a29b',
+    good:'#0ca30c', warn:'#fab219', serious:'#ec835a', crit:'#d03b3b', band:'rgba(237,161,0,.22)', s1a:'rgba(42,120,214,.18)', s2a:'rgba(235,104,52,.55)',
+    seq:['#e3eefc','#b7d3f6','#86b6ef','#3987e5','#1c5cab','#0d366b'], seqDarkInk:[0,1,2] },
+};
+
+/* ---------- formatters ---------- */
+const nf = (v,d=0) => Number(v).toLocaleString('en-IN',{minimumFractionDigits:d, maximumFractionDigits:d});
+const cr = (v,d=0) => (v<0?'−':'') + '₹' + nf(Math.abs(v),d) + ' cr';
+const pct = (v,d=1) => Number(v).toFixed(d) + '%';
+const localMn = (crAmt, ccy) => crAmt*10/FX[ccy];
+const localStr = (crAmt, ccy) => ccy==='INR' ? 'INR '+nf(crAmt,0)+' cr' : ccy+' '+nf(localMn(crAmt,ccy), localMn(crAmt,ccy)>=100?0:1)+' mn';
+const bankName = id => (BANKS.find(b=>b.id===id)||{}).name || id;
+const entName = c => (ENT.find(e=>e.code===c)||{}).name || c;
+const p2 = n => String(n).padStart(2,'0');
+const sgn = (v,d=1) => (v>0?'+':v<0?'−':'') + Math.abs(v).toFixed(d);
+const hhmm = m => p2(Math.floor((m%1440)/60))+':'+p2(Math.floor(m%60));
+
+/* =====================================================================
+   STATE
+   ===================================================================== */
+let savedTheme = 'dark';
+try { savedTheme = localStorage.getItem('gcpl-ct-theme') || 'dark'; } catch(e) {}
+const store = reactive({
+  theme: savedTheme, role:'cfo', view:'overview', tip:null,
+  clockMin: 16*60+40, clockSec: 0,
+  th: { idle:20, miss:10, limitWarn:90 },
+  ack: {}, simAlerts: [], simIdx: 0,
+  toasts: [], kpiSel: 'vis',
+  audit: [
+    { t:'16:02', who:'Treasury Copilot', act:'Drafted daily liquidity commentary', det:'Awaiting Group Treasurer sign-off' },
+    { t:'15:48', who:'TSSC analyst', act:'Approved reconciliation match R-2194', det:'Citi USA · USD 88,410.00 → AP batch 7781' },
+    { t:'15:31', who:'Treasury Copilot', act:'Answered question (read-only)', det:'"Which entities missed forecast by more than 10%?"' },
+    { t:'15:12', who:'TSSC analyst', act:'Rejected reconciliation proposal R-2190', det:'Amount matched but customer reference differed' },
+  ],
+  chat: [], copilotPending: null,
+  recon: [
+    { id:'R-2201', bank:'HSBC UK', side:'Credit', amt:'GBP 48,250.00', narr:'NORTHGATE RETAIL REMIT 0098', match:'AR invoices INV-UK-77812 to 77815 (4 items, GBP 48,250.00)', conf:97, why:'Exact amount; remittance reference carries customer ID', st:'pending' },
+    { id:'R-2202', bank:'Citi USA', side:'Debit', amt:'USD 12,480.55', narr:'E2E PX-24102', match:'AP payment PX-24102 to vendor 40188', conf:99, why:'End-to-end ID in camt.053 equals payment ID', st:'pending' },
+    { id:'R-2203', bank:'SCB UAE', side:'Credit', amt:'AED 186,400.00', narr:'PMT INV 3301 3307', match:'INV-AE-3301 (AED 150,000) + INV-AE-3307 (AED 36,400)', conf:88, why:'Two open invoices sum to the credit; both cited', st:'pending' },
+    { id:'R-2204', bank:'HSBC India', side:'Debit', amt:'INR 4,12,000.00', narr:'SERVICE CHARGES OCT', match:'camt.086 fee statement HSBC-IN-10 incl. GST', conf:93, why:'Total of camt.086 lines plus 18% GST', st:'pending' },
+    { id:'R-2205', bank:'Citi Brazil', side:'Credit', amt:'BRL 1,204,330.10', narr:'NETTING SETTLEMENT', match:'Intercompany netting cycle 10 (BRL 1,204,000.00)', conf:71, why:'Differs by BRL 330.10, likely FX rounding; needs a human check', st:'pending' },
+    { id:'R-2206', bank:'Standard Bank ZA', side:'Debit', amt:'ZAR 88,200.00', narr:'BATCH 5521', match:'Supplier batch SB-5521 (ZAR 88,200.00, 14 lines)', conf:64, why:'Amount matches; batch ID partial match only', st:'pending' },
+  ],
+  commentaryState: 'draft',
+  playDay: 34, playOverride: {},
+  feeClaims: {},
+  sweepProposed: false,
+});
+document.documentElement.dataset.theme = store.theme;
+document.documentElement.setAttribute('data-bs-theme', store.theme);
+
+const roleObj = computed(() => ROLES.find(r=>r.id===store.role));
+const scopeEnts = computed(() => ENT.filter(e => roleObj.value.regions.includes(e.region)));
+const isGroup = computed(() => roleObj.value.regions.length === 4);
+
+function nowStr(){ return hhmm(store.clockMin); }
+function logAudit(act, det, who){ store.audit.unshift({ t: nowStr(), who: who || roleObj.value.label, act, det }); }
+function toast(sev, title, body){ const id=Date.now()+Math.random(); store.toasts.push({ id, sev, title, body }); setTimeout(()=>{ const i=store.toasts.findIndex(t=>t.id===id); if(i>=0) store.toasts.splice(i,1); }, 6000); }
+function navigate(v){
+  if(!roleObj.value.views.includes(v)){ toast('warn','Not in your role scope', VIEWS.find(x=>x.id===v).label+' is not available to '+roleObj.value.label+'.'); return; }
+  store.view = v; window.scrollTo(0,0);
+}
+
+/* ---------- cut-off status (depends on clock) ---------- */
+function cutoffRows(){
+  return CUTOFFS.map(c => {
+    const left = c.ist - store.clockMin;
+    let s, t;
+    if(left <= 0){ s = c.pending ? 'warn' : 'neutral'; t = c.pending ? 'Missed · next value date' : 'Closed'; }
+    else if(left <= 60 && c.pending){ s='warn'; t='Closing in '+left+' min'; }
+    else { s='good'; t='Open · '+(left>=60? Math.floor(left/60)+'h '+p2(left%60)+'m' : left+' min')+' left'; }
+    return { ...c, left, s, t, istStr: hhmm(c.ist) + (c.ist>=1440?' (+1)':'') };
+  });
+}
+
+/* ---------- alerts engine ---------- */
+const ALL_ALERTS = computed(() => {
+  const th = store.th, out = [];
+  COUNTERPARTIES.forEach(c => {
+    if(!c.capPct) return;
+    const regs = REGIONS.filter(r => c.type==='invest' ? r==='Asia' : bankTotal(c.id, ENT.filter(e=>e.region===r))>0);
+    if(c.util > 100){
+      out.push({ id:'lim-'+c.id, sev:'crit', cat:'Limit breach', time:'08:15', regions:regs, view:'counterparty', owner:'Group Treasurer (24 h)',
+        title: c.name+' holds '+pct(c.share)+' of group cash vs '+c.capPct+'% cap',
+        detail: cr(c.amount - c.capAmt, 0)+' over the cap after the overnight sweeps. Escalated to the Group Treasurer; reported to the Treasury Committee monthly.',
+        action: 'Sweep ≥ '+cr(Math.ceil(c.amount - c.capAmt))+' to AAA money market funds. HSBC is already at '+pct(cpOf('HSBC').util,0)+' of its cap, so it is not the destination.' });
+    } else if(c.util >= th.limitWarn){
+      out.push({ id:'limw-'+c.id, sev:'warn', cat:'Approaching limit', time:'08:15', regions:regs, view:'counterparty', owner:'Group Treasurer',
+        title: c.name+' at '+pct(c.util,0)+' of its '+c.capPct+'% cap', detail: pct(c.share)+' of group cash ('+cr(c.amount)+'). Headroom '+cr(c.capAmt-c.amount)+'.', action:'Route new surplus to other panel banks or AAA funds.' });
+    }
+  });
+  ENT.forEach(e => {
+    const idle = idleOf(e);
+    if(idle > th.idle) out.push({ id:'idle-'+e.code, sev:'warn', cat:'Idle cash', time:'08:15', regions:[e.region], view:'cashmap', owner:e.region+' desk', ent:e.code,
+      title: e.name+': '+cr(idle)+' above operating buffer', detail: 'Threshold '+cr(th.idle)+'. '+e.pool+'; the surplus cannot join a regional pool.', action:'Repay local debt or lend via the GIFT City in-house bank where rules allow.' });
+    if(Math.abs(e.miss) > th.miss) out.push({ id:'miss-'+e.code, sev:'warn', cat:'Forecast miss', time:'Mon 09:00', regions:[e.region], view:'runway', owner:'Entity CFO', ent:e.code,
+      title: e.name+': week −1 cash flow '+sgn(e.miss)+'% vs forecast', detail:'Threshold ±'+th.miss+'%. Forecast '+cr(e.fcNet,1)+', actual '+cr(e.fcNet*(1+e.miss/100),1)+'.', action:'Entity owner to explain the variance in the weekly forecast review.' });
+  });
+  if(LOW.headLo < 50) out.push({ id:'low-w9', sev:'warn', cat:'Liquidity', time:'Mon 09:00', regions:REGIONS, view:'runway', owner:'Group Treasurer',
+    title:'Week '+LOW.w+' lower band only '+cr(LOW.headLo)+' above minimum cash', detail:'Advance tax and the interim dividend fall in week '+LOW.w+'. Forecast low '+cr(LOW.v)+' vs minimum '+cr(MIN_CASH)+'.', action:'Arrange pool funding by week 5 instead of borrowing late.' });
+  FXEXP.forEach(p => p.cells.forEach((c,i) => { if(c==='under'||c==='over') out.push({ id:'fx-'+p.pair+i, sev:'warn', cat:'FX hedge band', time:'Mon 09:00', regions:[p.region], view:'fx', owner:p.region+' desk',
+    title: p.pair+' '+BUCKETS[i]+' hedged '+p.ratio[i]+'% vs band '+BAND[i][0]+'–'+BAND[i][1]+'%', detail: (c==='under'?'Under':'Over')+'-hedged on '+cr(p.net[i])+' of forecast exposure.', action:'Regional desk to execute forwards back inside the band.' }); }));
+  cutoffRows().forEach(c => { if(c.s==='warn') out.push({ id:'cut-'+c.ccy+(c.left<=0?'x':''), sev:'warn', cat:'Payment cut-off', time: nowStr(), regions:[c.region], view:'payments', owner:'TSSC',
+    title: c.ccy+' · '+c.t, detail: c.pending+' payments ('+c.val+') pending at '+c.bank+', cut-off '+c.istStr+' IST.', action: c.left<=0 ? 'Re-date for next value date and notify beneficiaries.' : 'Approvers to release before cut-off.' }); });
+  out.push({ id:'sanc-24830', sev:'crit', cat:'Sanctions', time:'14:35', regions:['MEA'], view:'payments', owner:'Risk & Control',
+    title:'Payment held: potential sanctions match (GCPL UAE)', detail:'PX-24830 · AED 412k · 87% name similarity to a listed party. Released only after Risk & Control clears it.', action:'Risk & Control to review the match evidence.' });
+  return [...store.simAlerts, ...out];
+});
+const VISIBLE_ALERTS = computed(() => ALL_ALERTS.value.filter(a => a.regions.some(r => roleObj.value.regions.includes(r))));
+const OPEN_ALERTS = computed(() => VISIBLE_ALERTS.value.filter(a => !store.ack[a.id]));
+
+const SIM_EVENTS = [
+  { sev:'warn', cat:'Approaching limit', regions:['Americas','Europe','Asia','MEA'], view:'counterparty', owner:'Group Treasurer', title:'Citi intraday: GCPL USA receives USD 9.5 mn', detail:'Citi rises to 29.8% of group cash (85% of cap) on the intraday API feed.', action:'Sweep to the Americas header overnight; watch the 35% cap.' },
+  { sev:'warn', cat:'Forecast miss', regions:['Americas'], view:'runway', owner:'Entity CFO', ent:'BR', title:'GCPL Brazil: intraday receipts 18% below forecast', detail:'Two distributor receipts (BRL 2.4 mn) not yet credited at Citi São Paulo.', action:'Collections team to chase; re-forecast week 1.' },
+  { sev:'crit', cat:'Sanctions', regions:['Europe'], view:'payments', owner:'Risk & Control', title:'Payment held: potential sanctions match (GCPL Germany)', detail:'EUR 240k payment · 84% similarity to a listed party. Held before release.', action:'Risk & Control to review; payment stays held.' },
+];
+function simulateEvent(){
+  const ev = SIM_EVENTS[store.simIdx % SIM_EVENTS.length]; store.simIdx++;
+  const a = { ...ev, id:'sim-'+Date.now(), time: nowStr(), sim:true };
+  store.simAlerts.unshift(a);
+  toast(a.sev, a.cat, a.title);
+}
+
+/* ---------- stress engine (26 weeks) ---------- */
+function runStress(o){
+  o = Object.assign({ bank:null, fx:0, hedge:true, days:0, share:1, deferDiv:false, deferCapex:false }, o||{});
+  const R = RUN.R, d = o.days/7;
+  const Rint = (a,b) => { let s=0; for(let j=Math.floor(a); j<Math.ceil(b); j++){ if(j<0) continue; const lo=Math.max(a,j), hi=Math.min(b,j+1); if(hi>lo) s += (j<26?R[j]:R[25])*(hi-lo); } return s; };
+  let cash = GROUP_CASH, rcf = RCF_TOTAL, frozen = 0, frozenForeign = 0;
+  if(o.bank){ frozen = bankTotal(o.bank); frozenForeign = frozen - bankTotal(o.bank, ENT.filter(e=>e.ccy==='INR')); rcf -= (BANKS.find(b=>b.id===o.bank).rcf||0); }
+  cash -= frozen;
+  const foreign = (GROUP_CASH - INR_CASH) - frozenForeign;
+  const fxPairs = FXEXP.filter(p=>!p.exempt);
+  const series=[], liq=[]; let fxHit=0, recLost=0;
+  for(let k=0;k<26;k++){
+    const rec = (1-o.share)*R[k] + o.share*Rint(k-d, k+1-d);
+    recLost += R[k]-rec;
+    const b = Math.min(3, Math.floor(k/13));
+    const unhedged = sum(fxPairs.map(p => p.net[b]*(o.hedge ? (1-p.ratio[b]/100) : 1)))/13;
+    let fxLoss = o.fx/100*unhedged; if(k===0) fxLoss += o.fx/100*foreign;
+    fxHit += fxLoss;
+    const out = RUN.P[k]+RUN.payroll[k]+RUN.tax[k]+(o.deferDiv?0:RUN.div[k])+RUN.capex[k]*(o.deferCapex?0.5:1)+RUN.debt[k];
+    cash += rec - out - fxLoss;
+    series.push(Math.round(cash)); liq.push(Math.round(cash + rcf));
+  }
+  const low = Math.min(...series), lowW = series.indexOf(low)+1;
+  const fw = f => { const i=series.findIndex(f); return i<0?null:i+1; };
+  const belowMin = fw(v=>v<MIN_CASH), out0 = fw(v=>v<0);
+  const lq = liq.findIndex(v=>v<0); const outLiq = lq<0?null:lq+1;
+  return { series, liq, low, lowW, belowMin, out0, outLiq, rcf, frozen, fxHit:Math.round(fxHit), recLost:Math.round(recLost) };
+}
+
+/* ---------- copilot (rule-based, read-only, role-scoped) ---------- */
+const ENT_ALIASES = { IN:['india','indian'], BD:['bangladesh'], UK:['\\buk\\b','united kingdom','britain','london'], DE:['germany','german'], FR:['france','french'], IT:['italy','italian'], ES:['spain','spanish'], NL:['netherlands','dutch','holland'], IE:['ireland','irish'], US:['\\busa\\b','united states','\\bamerica\\b'], CA:['canada'], MX:['mexico'], BR:['brazil'], AE:['\\buae\\b','dubai','emirates'], ZA:['south africa'] };
+function detect(s){
+  const ents = ENT.filter(e => ENT_ALIASES[e.code].some(a => new RegExp(a).test(s)));
+  const regs = [];
+  if(/\beurope|european\b/.test(s)) regs.push('Europe');
+  if(/\bamericas\b/.test(s)) regs.push('Americas');
+  if(/\bmea\b|middle east/.test(s)) regs.push('MEA');
+  if(/\basia\b/.test(s)) regs.push('Asia');
+  let ccy = (s.match(/\b(inr|usd|eur|gbp|aed|cad|mxn|brl|zar|bdt)\b/)||[])[1];
+  ccy = ccy ? ccy.toUpperCase() : (/\beuros?\b/.test(s)?'EUR': /\bsterling|pounds?\b/.test(s)?'GBP': /\brupees?\b/.test(s)?'INR': /\bdollars?\b/.test(s)?'USD': null);
+  let bank = null;
+  if(/standard chartered|\bscb\b|stanchart/.test(s)) bank='SCB';
+  else if(/standard bank|stanbic/.test(s)) bank='SB';
+  else if(/hsbc/.test(s)) bank='HSBC';
+  else if(/\bciti/.test(s)) bank='Citi';
+  else if(/scotia/.test(s)) bank='Scotia';
+  else if(/legacy/.test(s)) bank='Legacy';
+  return { ents, regs, ccy, bank };
+}
+function copilotAnswer(q){
+  const s = q.toLowerCase(); const role = roleObj.value; const scope = scopeEnts.value; const grp = isGroup.value;
+  const { ents, regs, ccy, bank } = detect(s);
+  const outE = ents.filter(e => !role.regions.includes(e.region)).map(e=>e.name);
+  const outR = regs.filter(r => !role.regions.includes(r));
+  if(outE.length || outR.length) return { blocked:true, text:'That is outside your role scope. As '+role.label+' you can see '+role.regions.join(', ')+' only, so I can\'t answer about '+[...outE,...outR].join(', ')+'.\nThe Group Treasurer or CFO view covers all 15 entities.', src:'Guardrail: role-scoped data access' };
+  const S = (t, src) => ({ text:t, src });
+
+  if(/stress|fail|collapse|shock|scenario|how long|survive|last if/.test(s)){
+    if(!role.views.includes('stress')) return { blocked:true, text:'Stress tests are run at group level by the Group Treasurer, CFO and Risk & Control. I can\'t run them from the '+role.label+' view.', src:'Guardrail: role-scoped data access' };
+    const b = bank && bank!=='Legacy' ? bank : 'HSBC';
+    const r1 = runStress({ bank:b }), r2 = runStress({ fx:10 }), r3 = runStress({ days:30 }), r4 = runStress({ bank:b, fx:10, days:30 });
+    const d = r => (r.belowMin ? 'below minimum from week '+r.belowMin : 'never below minimum') + '; ' + (r.out0 ? 'cash runs out in week '+r.out0 : 'cash lasts all 26 weeks') + (r.out0 ? (r.outLiq ? ', or week '+r.outLiq+' after drawing the undrawn lines' : ', but the undrawn lines carry it through 26 weeks') : '');
+    return S('26-week stress results (no mitigation):\n• '+bankName(b)+' fails ('+cr(r1.frozen)+' frozen): '+d(r1)+'.\n• 10% FX shock (hedge book applied, hit '+cr(r2.fxHit)+'): '+d(r2)+'.\n• Customer receipts slip 30 days: '+d(r3)+'.\n• All three together: '+d(r4)+'.\nWeek 9 (advance tax and interim dividend) is the pinch point in every case. Deferring the dividend is the biggest single lever.', 'Stress test engine · 26-week base flows');
+  }
+  if(/hedg|\bfx\b|band|currency risk|forward/.test(s)){
+    let ps = FXEXP.filter(p => role.regions.includes(p.region));
+    if(ccy) ps = ps.filter(p => p.pair.includes(ccy));
+    if(!ps.length) return S('No FX exposures match that in your scope.', 'FX exposure view');
+    const lines = ps.map(p => p.exempt ? '• '+p.pair+': exempt (AED is pegged to USD; Treasury Committee decision).' : '• '+p.pair+': '+p.ratio.map((r,i)=>BUCKETS[i]+' '+r+'%').join(', ')+(pairOk(p)?' — all in band.':' — OUT OF BAND in '+p.cells.map((c,i)=>c!=='in'?BUCKETS[i]:null).filter(Boolean).join(', ')+'.'));
+    return S('Hedge ratios vs policy bands (75/50/35/25% ±10):\n'+lines.join('\n'), 'FX exposure view · TMS deal register');
+  }
+  if(/idle|trapped|surplus|lazy cash/.test(s)){
+    const es = scope.filter(e=>idleOf(e)>0).sort((a,b)=>idleOf(b)-idleOf(a));
+    const tot = sum(es.map(idleOf));
+    return S('Idle cash in your scope: '+cr(tot)+' ('+pct(tot/sum(scope.map(entCash))*100)+' of cash).\n'+es.map(e=>'• '+e.name+': '+cr(idleOf(e))+' above a '+cr(e.buffer)+' buffer · '+e.pool+(idleOf(e)>store.th.idle?' · above the '+cr(store.th.idle)+' alert threshold':'')).join('\n')+(es.length?'\nPooled entities show no idle cash: their surplus sweeps to the regional header every evening.':''), 'Cash map · entity buffers');
+  }
+  if(/limit|breach|\bcap\b|concentration|counterpart/.test(s)){
+    const rows = COUNTERPARTIES.filter(c=>c.capPct).map(c => '• '+c.name+': '+pct(c.share)+' of group cash vs '+c.capPct+'% cap ('+pct(c.util,0)+' used)'+(c.util>100?' — BREACH':c.util>=store.th.limitWarn?' — near cap':''));
+    return S('Counterparty limits (group level):\n'+rows.join('\n')+'\nT-bills and G-secs have no cap. Legacy banks ('+cr(cpOf('Legacy').amount)+') are in run-off.'+(store.sweepProposed?'\nA sweep from Standard Chartered to AAA funds has been proposed and is awaiting dual approval.':''), 'Counterparty heatmap · TMS limits');
+  }
+  if(/forecast|runway|week ?9|low point|minimum|outlook|13.?week|next quarter/.test(s)){
+    const miss = scope.filter(e=>Math.abs(e.miss)>store.th.miss);
+    return S('13-week outlook (group): the low point is week '+LOW.w+' at '+cr(LOW.v)+', '+cr(LOW.head)+' above the '+cr(MIN_CASH)+' minimum. The 90% lower band is only '+cr(LOW.headLo)+' above it.\nDriver: '+RUN.events[9]+'.\nSuggested action: arrange pool funding by week 5.'+(miss.length?'\nLast week\'s misses above ±'+store.th.miss+'%: '+miss.map(e=>e.name+' '+sgn(e.miss)+'%').join(', ')+'.':''), 'Liquidity runway · 13-week direct forecast');
+  }
+  if(/fee|tariff|camt.?086|charge|billing/.test(s)){
+    const top = FEE_EXC.slice().sort((a,b)=>b.over-a.over).slice(0,3);
+    return S('Bank fee audit (camt.086), last quarter: 18,420 fee lines checked against the panel tariff; 37 exceptions worth ₹20.6 lakh.\nLargest:\n'+top.map(f=>'• '+bankName(f.bank)+' · '+entName(f.ent)+': '+f.svc+' (₹'+f.over.toFixed(2)+' L)').join('\n')+'\nScotiabank\'s camt.086 feed goes live next month; legacy banks are checked by hand.', 'Bank fee audit · camt.086 statements');
+  }
+  if(/payment|stp|exception|sanction|cut.?off|queue|release/.test(s)){
+    const cut = cutoffRows().filter(c=>role.regions.includes(c.region) && c.s==='warn');
+    const exc = EXCEPTIONS.filter(x=>role.regions.includes(regionOf(x.ent)));
+    const stp = KPIS.find(k=>k.id==='stp').agg(scope).v;
+    return S('Payment factory, today: STP '+pct(stp)+'. '+(grp ? '38 exceptions open; the oldest is 3h 10m.' : exc.length+' open exceptions in your region.')+'\nSanctions: every payment screened; 6 potential matches, 5 cleared as false positives, 1 held (PX-24830, GCPL UAE).'+(cut.length?'\nCut-off risk: '+cut.map(c=>c.ccy+' — '+c.t+' ('+c.pending+' pending, '+c.val+')').join('; ')+'.':'\nNo cut-off at risk right now.'), 'Payment factory monitor · '+nowStr()+' IST');
+  }
+  if(/gift|grctc|in-?house|ihb|intercompany|netting/.test(s)){
+    const rows = IHB.filter(r=>role.regions.includes(regionOf(r.ent)));
+    return S('GIFT City GRCTC in-house bank: '+rows.length+' positions in your scope.\n'+rows.map(r=>'• '+r.dir+' '+entName(r.ent)+': '+r.ccy+' '+r.mn+' mn at '+r.rate+' ('+r.bench+') · tax: '+r.tax).join('\n')+'\nThe INR pool stays onshore at GTC Mumbai. Structure is subject to tax and legal review.', 'GIFT City view · IHB loan book');
+  }
+  if(/kpi|scorecard|target|on track/.test(s)){
+    const rows = KPIS.map(k=>{ const a=k.agg(scope, grp, role.regions); const st=a.st||kpiStatus(a.v,k.m12,k.m24,k.dir); return { k, a, st }; });
+    const watch = rows.filter(r=>r.st.s!=='good');
+    return S('KPI scorecard (month 18): '+rows.filter(r=>r.st.s==='good').length+' of 12 on track or met.\nNeeds attention:\n'+(watch.length?watch.map(r=>'• '+r.k.name+': '+r.a.text+' ('+r.st.t+')').join('\n'):'• none'), 'KPI scorecard');
+  }
+  if(/commentary|summary|brief|overview|how are we|position today|morning/.test(s) && !ccy && !bank){
+    return S(commentaryParas().map(p=>p.h+'. '+p.t).join('\n'), 'Daily liquidity commentary · generated '+nowStr()+' IST');
+  }
+  if(/exposure|balance|cash|deposit|how much|position|held|hold|sitting/.test(s) || ccy || bank || ents.length || regs.length){
+    let es = scope;
+    if(ents.length) es = ents; else if(regs.length) es = es.filter(e=>regs.includes(e.region));
+    if(ccy) es = es.filter(e=>e.ccy===ccy);
+    if(!es.length) return S('Nothing in your scope matches '+[ccy,bank&&bankName(bank)].filter(Boolean).join(' at ')+'.', 'Cash map');
+    if(es.length===1 && !bank){ const e=es[0]; const bs=Object.entries(e.banks).sort((a,b)=>b[1]-a[1]).map(([k,v])=>(k==='Legacy'?'legacy banks':bankName(k))+' '+cr(v)).join(', ');
+      return S(e.name+': '+cr(entCash(e))+' ('+localStr(entCash(e),e.ccy)+').\nBy bank: '+bs+(e.invest?', AAA funds and T-bills '+cr(e.invest):'')+'.\n'+e.pool+'. Operating buffer '+cr(e.buffer)+(idleOf(e)?'; '+cr(idleOf(e))+' idle above it':'; nothing idle')+'. Daily visibility '+pct(100-(e.banks.Legacy||0)/entCash(e)*100)+'.\nLast week\'s forecast miss: '+sgn(e.miss)+'%.', 'Cash map · camt.053 end of day'); }
+    const parts = es.map(e => [e, bank ? (e.banks[bank]||0) : entCash(e)]).filter(x=>x[1]>0);
+    const amt = sum(parts.map(x=>x[1]));
+    let t = (ccy?ccy+' balances':'Balances')+(bank?' at '+bankName(bank):'')+': '+cr(amt);
+    if(ccy && ccy!=='INR') t += ' (≈ '+ccy+' '+nf(localMn(amt,ccy),1)+' mn)';
+    t += ' across '+parts.length+' entit'+(parts.length===1?'y':'ies')+(parts.length?': '+parts.map(x=>x[0].country+' '+cr(x[1])).join(', '):'')+'.';
+    if(bank && bank!=='Legacy'){ const c=cpOf(bank); t += '\n'+c.name+' holds '+cr(c.amount)+' in total, '+pct(c.share)+' of group cash against a '+c.capPct+'% cap ('+pct(c.util,0)+' used)'+(amt&&amt<c.amount?'; this slice is '+pct(amt/c.amount*100,0)+' of it':'')+'.'; }
+    if(ccy && ccy!=='INR') t += '\nFor the hedging position on '+ccy+', ask "'+ccy+' hedge status".';
+    if(ccy==='INR' && !bank) t += '\nIncludes '+cr(INR_CASH-entBank(ENT[0]))+' invested in AAA funds and T-bills by GTC Mumbai.';
+    return S(t, 'Cash map · camt.053 end of day, intraday camt.052/API '+hhmm(Math.floor(store.clockMin/15)*15)+' IST');
+  }
+  return S('I can answer read-only questions on balances, limits, idle cash, the 13-week forecast, FX hedges, payments, bank fees, the GIFT City in-house bank, KPIs and stress tests. Try one of the suggestions below.', 'Treasury Copilot');
+}
+function commentaryParas(){
+  const es = scopeEnts.value, grp = isGroup.value;
+  const tot = sum(es.map(entCash)), vis = 100 - pctOf(es, e=>e.banks.Legacy||0);
+  const idleE = es.filter(e=>idleOf(e)>0).sort((a,b)=>idleOf(b)-idleOf(a));
+  const idle = sum(idleE.map(idleOf));
+  const scb = cpOf('SCB'), hsbc = cpOf('HSBC');
+  const fxOut = FXEXP.filter(p=>roleObj.value.regions.includes(p.region) && !pairOk(p));
+  const name = grp ? 'Group' : roleObj.value.regions[0];
+  const paras = [
+    { h:'Position', t: name+' cash closed at '+cr(tot)+(grp?', of which '+cr(sum(INVEST.map(i=>i.amount)))+' is invested in AAA funds and T-bills':'')+'. '+pct(vis)+' of balances are visible daily; the rest sit in legacy banks being exited.' },
+    { h:'Idle cash', t: idle ? cr(idle)+' ('+pct(idle/tot*100)+') sits above operating buffers, mostly in '+idleE.slice(0,2).map(e=>e.country+' ('+cr(idleOf(e))+')').join(' and ')+'. '+(idleE.some(e=>!/Joins/.test(e.pool)) ? 'Capital controls keep in-country balances local; the GIFT City in-house bank can lend them on where rules allow.' : '')+(idleE.some(e=>/Joins/.test(e.pool)) ? ' Ireland stops being idle when it joins the Europe header next month.' : '') : 'None: every entity in scope is pooled or at its buffer.' },
+    { h:'Limits', t: (scb.util>100 ? 'One breach: Standard Chartered holds '+pct(scb.share)+' of group cash against a 15% cap. '+(store.sweepProposed?'A sweep of '+cr(Math.ceil(scb.amount-scb.capAmt))+' to AAA funds is awaiting dual approval. ':'Sweep at least '+cr(Math.ceil(scb.amount-scb.capAmt))+' to AAA funds. ') : 'All counterparties within limits. ') + 'HSBC is at '+pct(hsbc.util,0)+' of its 35% cap, so it should not receive the excess.' },
+    { h:'Outlook', t: 'The 13-week low point is week '+LOW.w+' (advance tax and interim dividend): '+cr(LOW.v)+', '+cr(LOW.head)+' above the '+cr(MIN_CASH)+' minimum, with the 90% lower band only '+cr(LOW.headLo)+' above it. Arrange pool funding by week 5.' },
+    { h:'FX', t: fxOut.length ? 'Out of band: '+fxOut.map(p=>p.pair+' '+p.cells.map((c,i)=>c!=='in'?BUCKETS[i]+' at '+p.ratio[i]+'%':null).filter(Boolean).join(', ')).join('; ')+'. Everything else is inside the policy bands.' : 'All exposures in scope are inside the policy bands.' },
+  ];
+  return paras;
+}
+
+/* =====================================================================
+   CHART.JS setup
+   ===================================================================== */
+Chart.defaults.font.family = FONT;
+Chart.defaults.font.size = 11.5;
+const crosshair = { id:'crosshair', afterDatasetsDraw(chart, args, opts){
+  if(!opts || !opts.on) return; const act = chart.tooltip && chart.tooltip.getActiveElements(); if(!act || !act.length) return;
+  const x = act[0].element.x, a = chart.chartArea, ctx = chart.ctx;
+  ctx.save(); ctx.strokeStyle = opts.color; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x,a.top); ctx.lineTo(x,a.bottom); ctx.stroke(); ctx.restore(); } };
+const pointLabels = { id:'pointLabels', afterDatasetsDraw(chart, args, opts){
+  if(!opts || !opts.items) return; const ctx = chart.ctx;
+  opts.items.forEach(it => { const meta = chart.getDatasetMeta(it.ds); if(!meta || meta.hidden) return; const el = meta.data[it.i]; if(!el) return;
+    ctx.save(); ctx.font = '600 11px '+FONT; ctx.fillStyle = opts.color; ctx.textAlign = it.align||'center'; ctx.fillText(it.text, el.x+(it.dx||0), el.y+(it.dy||-10)); ctx.restore(); }); } };
+Chart.register(crosshair, pointLabels);
+
+function tipOpts(P, extra){ return Object.assign({ backgroundColor:P.tip, titleColor:P.ink, bodyColor:P.ink, footerColor:P.ink3, borderColor:P.border, borderWidth:1, padding:10, boxWidth:12, boxHeight:2, titleFont:{weight:'600'}, footerFont:{weight:'400', size:11}, displayColors:true }, extra||{}); }
+function legendOpts(P){ return { position:'bottom', align:'start', labels:{ color:P.ink2, boxWidth:14, boxHeight:3, padding:14, font:{size:12}, filter:(it)=>!String(it.text).startsWith('_') } }; }
+function scalesXY(P, y){ return { x:{ grid:{display:false}, ticks:{color:P.ink3}, border:{color:P.axis} }, y:Object.assign({ grid:{color:P.grid}, ticks:{color:P.ink3}, border:{display:false} }, y||{}) }; }
+
+function runwayConfig(P, compact){
+  const labels = ['W−4','W−3','W−2','W−1','Today', ...Array.from({length:13},(_,i)=>'W'+(i+1))];
+  const pad = Array(4).fill(null), fc = RUN.fc.slice(0,13), n13 = Array(13).fill(null);
+  const upper = [...pad, GROUP_CASH, ...fc.map((v,i)=>Math.round(v*(1+bandPct(i+1))))];
+  const lower = [...pad, GROUP_CASH, ...fc.map((v,i)=>Math.round(v*(1-bandPct(i+1))))];
+  const lowIdx = 4 + LOW.w;
+  return markRaw({ type:'line', data:{ labels, datasets:[
+    { label:'90% band', data:upper, borderWidth:0, pointRadius:0, pointHitRadius:0, fill:'+1', backgroundColor:P.band, order:9 },
+    { label:'_lower', data:lower, borderWidth:0, pointRadius:0, pointHitRadius:0, fill:false, order:9 },
+    { label:'Actual', data:[...ACT, ...n13], borderColor:P.s1, backgroundColor:P.s1, borderWidth:2, pointRadius:3, pointHoverRadius:5, tension:.25, order:1 },
+    { label:'Forecast', data:[...pad, GROUP_CASH, ...fc], borderColor:P.s4, backgroundColor:P.s4, borderWidth:2, pointRadius:c=>c.dataIndex===lowIdx?6:2, pointBorderColor:P.surface, pointBorderWidth:c=>c.dataIndex===lowIdx?2:0, tension:.25, order:2 },
+    ...(compact?[]:[{ label:'Forecast made 1 week earlier', data:[...PRIOR, null, ...n13], showLine:false, pointRadius:4, pointHoverRadius:5, borderColor:P.s4, backgroundColor:P.surface, borderWidth:2, order:3 }]),
+    { label:'Minimum cash ₹'+MIN_CASH+' cr', data:Array(18).fill(MIN_CASH), borderColor:P.crit, backgroundColor:P.crit, borderWidth:1.5, pointRadius:0, pointHitRadius:0, order:4 },
+  ]}, options:{ responsive:true, maintainAspectRatio:false, animation:{duration:250}, interaction:{mode:'index', intersect:false},
+    plugins:{ legend:legendOpts(P), crosshair:{on:true, color:P.axis},
+      pointLabels:{ color:P.ink, items:[{ ds:3, i:lowIdx, text:'W'+LOW.w+' low ₹'+nf(LOW.v)+' cr', align:'right', dx:-10, dy:4 }] },
+      tooltip: tipOpts(P, { filter:it=>!String(it.dataset.label).startsWith('_') && it.raw!=null,
+        callbacks:{ label:it=>{ if(it.dataset.label==='90% band'){ const lo=it.chart.data.datasets[1].data[it.dataIndex]; return ' 90% band: ₹'+nf(lo)+'–'+nf(it.raw)+' cr'; } return ' '+it.dataset.label.replace(/ ₹.*$/,'')+': ₹'+nf(it.raw)+' cr'; },
+          footer:items=>{ const i=items[0].dataIndex-4; return RUN.events[i] ? RUN.events[i] : (i<0&&i>-5? 'Actual vs forecast: '+((ACT[items[0].dataIndex]-PRIOR[items[0].dataIndex])/PRIOR[items[0].dataIndex]*100).toFixed(1)+'%' : ''); } } }) },
+    scales: Object.assign(scalesXY(P, { min:600, max:1700, ticks:{ color:P.ink3, callback:v=>'₹'+nf(v) } }), { x:{ grid:{display:false}, border:{color:P.axis}, ticks:{ color:P.ink3, maxRotation:0, autoSkip:true, autoSkipPadding:6 } } }) } });
+}
+
+/* =====================================================================
+   COMPONENTS
+   ===================================================================== */
+const VChart = { props:['config','height','label'],
+  template:`<div class="chart-wrap" :style="{height:(height||260)+'px'}"><canvas ref="c" role="img" :aria-label="label||'chart'"></canvas></div>`,
+  mounted(){ this.draw(); }, beforeUnmount(){ if(this.ch) this.ch.destroy(); },
+  watch:{ config(){ this.draw(); } },
+  methods:{ draw(){ if(this.ch) this.ch.destroy(); if(this.config) this.ch = markRaw(new Chart(this.$refs.c, this.config)); } } };
+
+const SChip = { props:['s','text'], template:`<span class="chip" :class="s"><i class="bi" :class="icon"></i>{{text}}</span>`,
+  computed:{ icon(){ return { good:'bi-check-circle-fill', warn:'bi-exclamation-triangle-fill', serious:'bi-exclamation-circle-fill', crit:'bi-x-octagon-fill', info:'bi-info-circle-fill', neutral:'bi-dash-circle' }[this.s] || 'bi-dot'; } } };
+
+const Spark = { props:['data','color','w','h'], template:`<svg :width="W" :height="H" :viewBox="'0 0 '+W+' '+H" aria-hidden="true"><polyline :points="pts" fill="none" :stroke="color" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle :cx="last[0]" :cy="last[1]" r="2.6" :fill="color"/></svg>`,
+  computed:{ W(){return this.w||96}, H(){return this.h||28}, xy(){ const d=this.data, mn=Math.min(...d), mx=Math.max(...d), r=(mx-mn)||1; return d.map((v,i)=>[3+i*(this.W-6)/(d.length-1), this.H-3-(v-mn)/r*(this.H-6)]); }, pts(){ return this.xy.map(p=>p.map(n=>n.toFixed(1)).join(',')).join(' '); }, last(){ return this.xy[this.xy.length-1]; } } };
+
+const UBar = { props:['util','s'], template:`<div class="ubar" :aria-label="Math.round(util)+'% of limit'"><div class="f" :style="{width:Math.min(util,125)/125*100+'%', background:col}"></div><div class="m" style="left:80%"></div></div>`,
+  computed:{ col(){ return { good:'var(--good)', warn:'var(--warn)', crit:'var(--crit)', neutral:'var(--neutral)' }[this.s]; } } };
+
+const ViewHead = { props:['title','sub','q'],
+  template:`<div class="vh"><div><h1>{{title}}</h1><div class="vh-sub">{{sub}}</div></div>
+  <div class="vh-r"><span class="scope-pill"><i class="bi bi-person-badge"></i> {{scopeLabel}}</span><span class="qchip" v-if="q">{{q}}</span></div></div>`,
+  computed:{ scopeLabel(){ return isGroup.value ? 'Group · 15 entities' : roleObj.value.regions.join(', ')+' · '+scopeEnts.value.length+' entities'; } } };
+
+/* shared mixin */
+const shared = {
+  computed:{ store:()=>store, P:()=>PAL[store.theme], role:()=>roleObj.value, ents:()=>scopeEnts.value, grp:()=>isGroup.value },
+  methods:{ cr, nf, pct, sgn, localStr, bankName, entName, entCash, entBank, idleOf, go:navigate,
+    bcol(id){ const b=BANKS.find(x=>x.id===id); return 'var(--'+(b?b.col:'s6')+')'; },
+    tip(ev, title, rows){ const r = ev.currentTarget.getBoundingClientRect(); const x = ev.clientX || (r.left + r.width/2), y = ev.clientY || r.top; store.tip = { x, y, title, rows }; },
+    untip(){ store.tip = null; } } };
+
+/* ---------------- OVERVIEW ---------------- */
+const OverviewView = { mixins:[shared], components:{ VChart, SChip, ViewHead, UBar },
+template:`<div>
+ <view-head :title="grp ? 'CFO overview' : role.regions[0]+' overview'" :sub="grp ? 'One screen: cash, liquidity, limits, payments and the 12 KPIs, refreshed intraday' : 'Your region\\'s cash, limits, payments and KPIs; group figures are read-only'" q="Control Tower"/>
+ <div class="row g-3 mb-3">
+  <div class="col-6 col-md-4 col-xxl-2" v-for="t in tiles" :key="t.label">
+   <div class="cardx stat" :class="{click:!!t.view, hl:t.hl}" @click="t.view && go(t.view)" :tabindex="t.view?0:-1" @keydown.enter="t.view && go(t.view)">
+    <div class="lbl"><i class="bi" :class="t.icon"></i>{{t.label}}</div>
+    <div class="val">{{t.value}}<small v-if="t.unit">{{t.unit}}</small></div>
+    <div class="sub"><s-chip v-if="t.chip" :s="t.chip[0]" :text="t.chip[1]"/> <span v-if="t.sub">{{t.sub}}</span></div>
+   </div>
+  </div>
+ </div>
+ <div class="row g-3 mb-3">
+  <div class="col-xl-8">
+   <div class="cardx">
+    <div class="ch"><div><div class="ct">Liquidity runway · group 13-week forecast</div><div class="cs">Direct method, all 15 entities; band = 90% confidence</div></div><button class="btnx sm" @click="go('runway')">Open runway <i class="bi bi-arrow-right"></i></button></div>
+    <v-chart :config="runCfg" :height="392" label="13-week cash forecast with confidence band and minimum cash line"/>
+   </div>
+  </div>
+  <div class="col-xl-4">
+   <div class="cardx">
+    <div class="ch"><div><div class="ct">KPI scorecard</div><div class="cs">Status vs the month-18 glide path</div></div><span class="ink2 small2">{{kpiGood}} of 12 on track</span></div>
+    <div class="rag-grid">
+     <div class="rag" v-for="k in kpiRows" :key="k.k.id" @click="store.kpiSel=k.k.id; go('kpi')" tabindex="0" @keydown.enter="store.kpiSel=k.k.id; go('kpi')" @mouseenter="tip($event,k.k.name,[[k.a.text,'now'],[k.k.t24,'month-24 target'],[k.st.t,'status']])" @mouseleave="untip">
+      <div class="n"><i class="bi" :class="{good:'bi-check-circle-fill',warn:'bi-exclamation-triangle-fill',crit:'bi-x-octagon-fill',info:'bi-info-circle-fill'}[k.st.s]" :style="{color:k.st.s==='info'?'var(--s1)':'var(--'+k.st.s+')'}"></i>{{k.k.name}}</div>
+      <div class="v">{{k.a.text}}</div>
+     </div>
+    </div>
+    <div class="mt-3">
+     <div class="small2 muted">Programme · month 18 of 24</div>
+     <div class="wave"><div class="done">Mobilize</div><div class="done">Build</div><div class="now">Migrate</div><div>Optimize</div></div>
+    </div>
+   </div>
+  </div>
+ </div>
+ <div class="row g-3 mb-3">
+  <div class="col-lg-4">
+   <div class="cardx">
+    <div class="ch"><div><div class="ct">Counterparty limits</div><div class="cs">Share of group cash vs cap</div></div><button class="btnx sm" @click="go('counterparty')">Heatmap</button></div>
+    <div v-for="c in cps" :key="c.id" class="mb-2">
+     <div class="d-flex justify-content-between small2"><span><span class="dot" :style="{background:'var(--'+c.col+')'}"></span> {{c.name}}</span><span class="tnum"><b>{{pct(c.share)}}</b> <span class="muted">/ {{c.capPct}}%</span></span></div>
+     <u-bar :util="c.util" :s="c.util>100?'crit':c.util>=store.th.limitWarn?'warn':'good'" class="mt-1"/>
+    </div>
+    <div class="small2 muted mt-2">Marker = 100% of cap · bar runs to 125%</div>
+   </div>
+  </div>
+  <div class="col-lg-4">
+   <div class="cardx">
+    <div class="ch"><div><div class="ct">Cash by {{grp?'region':'entity'}}</div><div class="cs">End of day, INR cr</div></div><button class="btnx sm" @click="go('cashmap')">Cash map</button></div>
+    <div v-for="r in byRegion" :key="r.k" class="hbar mb-2" @mouseenter="tip($event,r.k,[[cr(r.v),'balance'],[pct(r.v/totalScope*100),'of scope']])" @mouseleave="untip">
+     <span class="small2" style="width:96px">{{r.k}}</span><div class="t"><div class="f" :style="{width:r.v/maxRegion*100+'%', background:'var(--s1)'}"></div></div><span class="small2 tnum fw6" style="width:62px;text-align:right">{{cr(r.v)}}</span>
+    </div>
+    <div class="small2 muted mt-3 mb-1">Where the cash sits</div>
+    <div class="stack"><div v-for="x in split" :key="x.k" :style="{width:x.v/totalScope*100+'%', background:x.c}" @mouseenter="tip($event,x.k,[[cr(x.v),'balance'],[pct(x.v/totalScope*100),'of scope']])" @mouseleave="untip"></div></div>
+    <div class="legend-x"><span v-for="x in split" :key="x.k"><span class="dot" :style="{background:x.c}"></span> {{x.k}} {{cr(x.v)}}</span></div>
+   </div>
+  </div>
+  <div class="col-lg-4">
+   <div class="cardx">
+    <div class="ch"><div><div class="ct">Payment factory today</div><div class="cs">TSSC · as of {{clock}} IST</div></div><button class="btnx sm" @click="go('payments')">Monitor</button></div>
+    <div class="row g-2">
+     <div class="col-6"><div class="small2 muted">Payments</div><div class="fw7" style="font-size:20px">{{nf(pay.n)}}</div><div class="small2 ink2">{{cr(pay.v)}}</div></div>
+     <div class="col-6"><div class="small2 muted">STP rate</div><div class="fw7" style="font-size:20px">{{pct(pay.stp)}}</div><div class="small2 ink2">target ≥ 90%</div></div>
+     <div class="col-6"><div class="small2 muted">Open exceptions</div><div class="fw7" style="font-size:20px">{{pay.exc}}</div></div>
+     <div class="col-6"><div class="small2 muted">Sanctions screened</div><div class="fw7" style="font-size:20px">100%</div><div class="small2"><s-chip s="crit" text="1 held"/></div></div>
+    </div>
+    <div class="small2 mt-2" v-if="nextCut"><i class="bi bi-clock"></i> Next cut-off: <b>{{nextCut.ccy}}</b> {{nextCut.t.toLowerCase()}}</div>
+   </div>
+  </div>
+ </div>
+ <div class="row g-3">
+  <div class="col-xl-7">
+   <div class="cardx">
+    <div class="ch"><div><div class="ct"><i class="bi bi-stars" style="color:var(--accent-text)"></i> Daily liquidity commentary</div><div class="cs">Drafted by Treasury Copilot from Control Tower data · human sign-off required</div></div>
+     <span><s-chip :s="store.commentaryState==='draft'?'warn':'good'" :text="store.commentaryState==='draft'?'Draft':'Approved '+approvedAt"/></span></div>
+    <div class="comm"><p v-for="p in comm" :key="p.h"><b>{{p.h}}.</b> {{p.t}}</p></div>
+    <button class="btnx brand sm" v-if="store.commentaryState==='draft' && (role.id==='gt'||role.id==='cfo')" @click="approve">Approve and publish</button>
+    <span class="small2 muted" v-else-if="store.commentaryState==='draft'">Sign-off sits with the Group Treasurer.</span>
+   </div>
+  </div>
+  <div class="col-xl-5">
+   <div class="cardx">
+    <div class="ch"><div><div class="ct">Alerts</div><div class="cs">Rules: limit breach, idle cash > ₹{{store.th.idle}} cr, forecast miss > {{store.th.miss}}%</div></div><button class="btnx sm" @click="$root.alertsOpen=true">All {{openN}}</button></div>
+    <div v-for="a in topAlerts" :key="a.id" class="al" :class="a.sev">
+     <div class="d-flex justify-content-between gap-2"><s-chip :s="a.sev" :text="a.cat"/><span class="small2 muted">{{a.time}}</span></div>
+     <div class="at">{{a.title}}</div>
+     <div class="aa"><a href="#" @click.prevent="go(a.view)">View <i class="bi bi-arrow-right"></i></a></div>
+    </div>
+   </div>
+  </div>
+ </div>
+</div>`,
+computed:{
+  clock(){ return hhmm(store.clockMin); },
+  totalScope(){ return sum(this.ents.map(entCash)); },
+  tiles(){
+    const es=this.ents, tot=this.totalScope, vis=100-pctOf(es,e=>e.banks.Legacy||0), idle=sum(es.map(idleOf));
+    const crit=OPEN_ALERTS.value.filter(a=>a.sev==='crit').length, warn=OPEN_ALERTS.value.length-crit;
+    const t = [
+      { label: this.grp?'Group cash':'Region cash', icon:'bi-wallet2', value:'₹'+nf(tot), unit:'cr', sub: this.grp ? '15 entities · 5 panel banks' : pct(tot/GROUP_CASH*100)+' of group · '+es.length+' entities', view:'cashmap', hl:true },
+      { label:'Daily cash visibility', icon:'bi-eye', value:pct(vis), chip: vis>=95?['good','Target met']:['warn','Watch'], view:'kpi' },
+      { label:'Idle cash', icon:'bi-hourglass-split', value:'₹'+nf(idle), unit:'cr', sub: pct(idle/tot*100)+' of cash · target < 5%', view:'cashmap' },
+      { label:'13-week low point', icon:'bi-graph-down', value:'₹'+nf(LOW.v), unit:'cr', sub:'Week '+LOW.w+' · ₹'+LOW.head+' cr above minimum', view:'runway' },
+      { label:'Liquidity incl. undrawn lines', icon:'bi-bank', value:'₹'+nf(GROUP_CASH+RCF_TOTAL), unit:'cr', sub:'Cash + ₹'+RCF_TOTAL+' cr committed RCF', view: this.role.views.includes('stress')?'stress':null },
+      { label:'Open alerts', icon:'bi-bell', value:String(OPEN_ALERTS.value.length), chip: crit?['crit',crit+' critical']:['good','No critical'], sub: warn+' warnings', view:null },
+    ];
+    return t;
+  },
+  runCfg(){ return runwayConfig(this.P, true); },
+  kpiRows(){ return KPIS.map(k=>{ const a=k.agg(this.ents, this.grp, this.role.regions); return { k, a, st:a.st||kpiStatus(a.v,k.m12,k.m24,k.dir) }; }); },
+  kpiGood(){ return this.kpiRows.filter(r=>r.st.s==='good'||r.st.s==='info').length; },
+  cps(){ return COUNTERPARTIES.filter(c=>c.capPct && c.type==='bank'); },
+  byRegion(){ if(this.grp) return REGIONS.map(r=>({ k:r, v:sum(ENT.filter(e=>e.region===r).map(entCash)) })); return this.ents.map(e=>({ k:e.country, v:entCash(e) })).sort((a,b)=>b.v-a.v); },
+  maxRegion(){ return Math.max(...this.byRegion.map(r=>r.v)); },
+  split(){ const es=this.ents; const inv=sum(es.map(e=>e.invest||0)); const pooled=sum(es.filter(e=>e.pooled).map(entBank)); const local=sum(es.filter(e=>!e.pooled).map(entBank)); return [ { k:'Pooled', v:pooled, c:'var(--s1)' }, { k:'Not pooled', v:local, c:'var(--s2)' }, { k:'Invested', v:inv, c:'var(--s6)' } ].filter(x=>x.v>0); },
+  pay(){ const es=this.ents; const n=sum(es.map(e=>e.pay)), v=sum(es.map(e=>e.payVal)); const stp=sum(es.map(e=>e.stp*e.pay))/n; const exc= this.grp ? 38 : EXCEPTIONS.filter(x=>es.some(e=>e.code===x.ent)).length; return { n, v, stp, exc }; },
+  nextCut(){ return cutoffRows().filter(c=>this.role.regions.includes(c.region) && c.left>0).sort((a,b)=>a.left-b.left)[0]; },
+  comm(){ return commentaryParas(); },
+  topAlerts(){ const order={crit:0,warn:1,info:2}; return OPEN_ALERTS.value.slice().sort((a,b)=>order[a.sev]-order[b.sev]).slice(0,4); },
+  openN(){ return OPEN_ALERTS.value.length; },
+  approvedAt(){ return store.commentaryApprovedAt || ''; },
+},
+methods:{ approve(){ store.commentaryState='approved'; store.commentaryApprovedAt=nowStr(); logAudit('Approved and published daily liquidity commentary','Drafted by Treasury Copilot'); toast('good','Commentary published','Daily liquidity commentary approved by '+roleObj.value.label+'.'); } } };
+
+/* ---------------- CASH MAP ---------------- */
+const CashMapView = { mixins:[shared], components:{ SChip, ViewHead },
+data(){ return { mode:'eod', links:true, sel:null } },
+created(){ this.sel = this.ents[0].code; },
+template:`<div>
+ <view-head title="Global cash map" sub="Balances by country, bank and currency · end of day from camt.053, intraday from camt.052 and bank APIs" q="Q · C · D"/>
+ <div class="filters">
+  <label>Data</label><div class="seg"><button :class="{on:mode==='eod'}" @click="mode='eod'">End of day · camt.053</button><button :class="{on:mode==='intra'}" @click="mode='intra'">Intraday · {{intraAt}} IST</button></div>
+  <label class="sw ms-2"><input type="checkbox" v-model="links"><span class="tr"></span>Pooling structure</label>
+  <span class="ms-auto small2 muted">Totals in INR cr at indicative rates · local amounts in tooltips</span>
+ </div>
+ <div class="row g-3 mb-3">
+  <div class="col-xl-8">
+   <div class="cardx">
+    <div class="ch"><div><div class="ct">{{grp?'Group':role.regions[0]}} cash: {{cr(total,0)}}</div><div class="cs">{{mode==='eod'?'Closing balances, previous business day':'Intraday position; Americas feeds start at market open'}}</div></div>
+     <div class="d-flex align-items-center gap-2 small2 muted">Lower<div class="legend-ramp"><span v-for="(c,i) in P.seq" :key="i" :style="{background:c}"></span></div>Higher</div></div>
+    <svg class="mapsvg" viewBox="0 0 830 450" role="img" aria-label="Tile map of entity cash balances">
+     <text class="rlab" x="20" y="28">AMERICAS</text><text class="rlab" x="260" y="28">EUROPE</text><text class="rlab" x="580" y="108">MEA</text><text class="rlab" x="660" y="188">ASIA</text><text class="rlab" x="420" y="348">MEA</text>
+     <g v-if="links">
+      <path v-for="l in linkPaths" :key="l.id" :d="l.d" class="link" :class="{over:l.over}"/>
+      <g class="gnode"><rect x="560" y="296" width="170" height="40" rx="6"/><text x="645" y="314" text-anchor="middle">GRCTC · GIFT City</text><text x="645" y="329" text-anchor="middle" style="font-weight:400;font-size:10px;fill:var(--ink-2)">notional overlay, foreign currency</text></g>
+     </g>
+     <g v-for="t in tiles" :key="t.e.code" class="tile" :class="{sel:sel===t.e.code, off:t.off}" :transform="'translate('+t.x+','+t.y+')'" :tabindex="t.off?-1:0" role="button" :aria-label="t.e.name+' '+cr(t.v)"
+        @click="!t.off && (sel=t.e.code)" @keydown.enter="!t.off && (sel=t.e.code)" @mouseenter="hover($event,t)" @mouseleave="untip" @focus="hover($event,t)" @blur="untip">
+      <rect class="bg" width="70" height="70" rx="7" :fill="t.fill" :stroke="t.e.pooled?'transparent':P.ink3" :stroke-dasharray="t.e.pooled?'':'4 3'" stroke-width="1.4"/>
+      <path v-if="t.e.hub" d="M58 0 h5 a7 7 0 0 1 7 7 v5 z" fill="#ffe600"/>
+      <text x="8" y="17" :fill="t.ink" style="font-size:12px;font-weight:700">{{t.e.code}}</text>
+      <text x="8" y="43" :fill="t.ink" style="font-size:16px;font-weight:700">{{nf(t.v,0)}}</text>
+      <text x="8" y="60" :fill="t.ink" style="font-size:9.5px;opacity:.85">{{t.e.pooled?'pooled':'in-country'}}</text>
+     </g>
+    </svg>
+    <div class="legend-x"><span><span class="dot" style="background:#ffe600"></span> Pool header</span><span><svg width="18" height="10"><rect x="1" y="1" width="16" height="8" rx="2" fill="none" :stroke="P.ink3" stroke-dasharray="4 3"/></svg> In-country only (capital controls or migrating)</span><span v-if="links"><span class="lkey" :style="{background:P.ink3}"></span> Zero-balanced to regional header</span><span v-if="links"><span class="lkey" style="background:var(--accent-text)"></span> Notional overlay to GRCTC</span></div>
+   </div>
+  </div>
+  <div class="col-xl-4">
+   <div class="cardx" v-if="selE">
+    <div class="ch"><div><div class="ct">{{selE.name}}</div><div class="cs">{{selE.region}} · {{selE.ccy}} · {{selE.pool}}</div></div><s-chip :s="selE.pooled?'good':'neutral'" :text="selE.pooled?'Pooled':'In-country'"/></div>
+    <div class="row g-2 mb-2">
+     <div class="col-6"><div class="small2 muted">Balance</div><div class="fw7" style="font-size:21px">{{cr(val(selE),selE.code==='IN'?0:0)}}</div><div class="small2 ink2">{{localStr(val(selE), selE.ccy)}}</div></div>
+     <div class="col-6"><div class="small2 muted">Idle above buffer</div><div class="fw7" style="font-size:21px">{{cr(idleOf(selE))}}</div><div class="small2 ink2">buffer {{cr(selE.buffer)}}</div></div>
+    </div>
+    <div class="small2 muted mt-2 mb-1">By bank</div>
+    <div class="stack mb-2"><div v-for="b in selBanks" :key="b.id" :style="{width:b.v/selTotal*100+'%', background:bcol(b.id)}" @mouseenter="tip($event,bankName(b.id),[[cr(b.v),'balance'],[b.feed,'feed']])" @mouseleave="untip"></div></div>
+    <table class="tbl"><tbody>
+     <tr v-for="b in selBanks" :key="b.id"><td><span class="dot" :style="{background:bcol(b.id)}"></span> {{bankName(b.id)}}</td><td class="r fw6">{{cr(b.v)}}</td><td class="small2 muted">{{b.feed}}</td></tr>
+    </tbody></table>
+    <div class="small2 mt-2 ink2" v-if="mode==='intra'"><i class="bi bi-broadcast"></i> {{selE.intraNote || ('Intraday change '+(selE.intra>=0?'+':'')+selE.intra+'% on visible accounts')}}</div>
+    <div class="small2 mt-2 muted">Accounts: {{selE.acc}} (target {{selE.accT}}) · daily visibility {{pct(100-(selE.banks.Legacy||0)/entCash(selE)*100)}}</div>
+   </div>
+  </div>
+ </div>
+ <div class="row g-3">
+  <div class="col-lg-6">
+   <div class="cardx">
+    <div class="ch"><div><div class="ct">By bank</div><div class="cs">Deposits plus investments, INR cr</div></div></div>
+    <div class="stack mb-3"><div v-for="b in byBank" :key="b.id" :style="{width:b.v/total*100+'%', background:b.c}" @mouseenter="tip($event,b.name,[[cr(b.v),'balance'],[pct(b.v/total*100),'of scope']])" @mouseleave="untip"></div></div>
+    <div class="tscroll"><table class="tbl"><thead><tr><th>Counterparty</th><th class="r">Balance</th><th class="r">Share</th><th>Statement feed</th></tr></thead><tbody>
+     <tr v-for="b in byBank" :key="b.id"><td><span class="dot" :style="{background:b.c}"></span> {{b.name}}</td><td class="r fw6">{{cr(b.v)}}</td><td class="r">{{pct(b.v/total*100)}}</td><td class="small2 muted">{{b.feed}}</td></tr>
+    </tbody></table></div>
+   </div>
+  </div>
+  <div class="col-lg-6">
+   <div class="cardx">
+    <div class="ch"><div><div class="ct">By currency</div><div class="cs">Local amount at indicative INR rates</div></div></div>
+    <div class="tscroll"><table class="tbl"><thead><tr><th>Currency</th><th class="r">INR cr</th><th class="r">Local</th><th>Entities</th><th class="r">Rate</th></tr></thead><tbody>
+     <tr v-for="c in byCcy" :key="c.ccy"><td class="fw6">{{c.ccy}}</td><td class="r fw6">{{cr(c.v)}}</td><td class="r">{{localStr(c.v,c.ccy)}}</td><td class="small2">{{c.ents}}</td><td class="r small2 muted">{{c.ccy==='INR'?'—':FXr[c.ccy]}}</td></tr>
+    </tbody></table></div>
+   </div>
+  </div>
+ </div>
+</div>`,
+computed:{
+  FXr:()=>FX,
+  intraAt(){ return hhmm(Math.floor(store.clockMin/15)*15); },
+  val(){ return e => this.mode==='eod' ? entCash(e) : entIntra(e); },
+  total(){ return sum(this.ents.map(this.val)); },
+  tiles(){ const P=this.P; const bins=[40,60,90,130,250]; return ENT.map(e=>{ const v=this.val(e); const b=bins.filter(x=>v>=x).length; return { e, v, x:-60+e.pos[0]*80, y:40+e.pos[1]*80, fill:P.seq[b], ink: P.seqDarkInk.includes(b)?'#16161d':'#ffffff', off:!this.role.regions.includes(e.region) }; }); },
+  linkPaths(){ const c=e=>[-60+e.pos[0]*80+35, 40+e.pos[1]*80+35]; const out=[]; const vis=e=>this.role.regions.includes(e.region);
+    ENT.forEach(e=>{ if(!e.pooled||e.hub||!vis(e)) return; const h=ENT.find(x=>x.code===HUB_OF[e.region]); const a=c(e), b=c(h); out.push({ id:e.code, d:'M'+a[0]+' '+a[1]+' L'+b[0]+' '+b[1] }); });
+    ['UK','US','AE'].forEach(k=>{ const h=ENT.find(x=>x.code===k); if(!vis(h)) return; const a=c(h); out.push({ id:'o'+k, over:true, d:'M'+a[0]+' '+a[1]+' Q'+((a[0]+645)/2)+' '+(Math.max(a[1],316)+40)+' 645 316' }); });
+    return out; },
+  selE(){ return ENT.find(e=>e.code===this.sel); },
+  selBanks(){ const e=this.selE; const f=this.mode==='eod'?1:1; const rows=Object.entries(e.banks).map(([id,v])=>({ id, v: this.mode==='eod'||id==='Legacy' ? v : Math.round(v*(1+e.intra/100)*10)/10, feed:(BANKS.find(b=>b.id===id)||{}).feed })); if(e.invest) rows.push({ id:'Invest', v:e.invest, feed:'AAA funds and T-bills (GTC)' }); return rows.sort((a,b)=>b.v-a.v); },
+  selTotal(){ return sum(this.selBanks.map(b=>b.v)); },
+  byBank(){ const es=this.ents; const intra=this.mode==='intra'; const rows=BANKS.map(b=>({ id:b.id, name:b.name, c:'var(--'+b.col+')', feed:b.feed, v: sum(es.map(e=>{ const x=e.banks[b.id]||0; return intra&&b.id!=='Legacy'? x*(1+e.intra/100) : x; })) })).filter(r=>r.v>0);
+    const inv=sum(es.map(e=>e.invest||0)); if(inv) rows.push({ id:'Invest', name:'AAA funds and T-bills', c:'var(--s6)', feed:'Custodian, daily', v:inv });
+    return rows.map(r=>({...r, v:Math.round(r.v*10)/10})).sort((a,b)=>b.v-a.v); },
+  byCcy(){ const m={}; this.ents.forEach(e=>{ m[e.ccy]=m[e.ccy]||{ ccy:e.ccy, v:0, ents:[] }; m[e.ccy].v+=this.val(e); m[e.ccy].ents.push(e.code); }); return Object.values(m).map(x=>({...x, v:Math.round(x.v*10)/10, ents:x.ents.join(', ')})).sort((a,b)=>b.v-a.v); },
+},
+methods:{ hover(ev,t){ if(t.off){ this.tip(ev, t.e.name, [['Outside your role scope','']]); return; } const e=t.e; this.tip(ev, e.name, [[cr(t.v,0), this.mode==='eod'?'end of day':'intraday'],[localStr(t.v,e.ccy),'local'],[cr(idleOf(e)),'idle above buffer'],[e.pool,'']]); } } };
+
+/* ---------------- RUNWAY ---------------- */
+const RunwayView = { mixins:[shared], components:{ VChart, SChip, ViewHead },
+template:`<div>
+ <view-head title="Liquidity runway" sub="13-week direct forecast against actuals, with a 90% confidence band and the minimum-cash line" q="Q · D"/>
+ <div class="row g-3 mb-3">
+  <div class="col-6 col-lg-3"><div class="cardx stat hl"><div class="lbl">Cash today</div><div class="val">₹{{nf(1500)}}<small>cr</small></div><div class="sub">Actual vs forecast last week: +0.5%</div></div></div>
+  <div class="col-6 col-lg-3"><div class="cardx stat"><div class="lbl">Low point</div><div class="val">₹{{nf(LOW.v)}}<small>cr</small></div><div class="sub">Week {{LOW.w}} · advance tax + interim dividend</div></div></div>
+  <div class="col-6 col-lg-3"><div class="cardx stat"><div class="lbl">Headroom at low point</div><div class="val">₹{{LOW.head}}<small>cr</small></div><div class="sub"><s-chip s="warn" :text="'Lower band ₹'+LOW.headLo+' cr'"/></div></div></div>
+  <div class="col-6 col-lg-3"><div class="cardx stat"><div class="lbl">Undrawn committed lines</div><div class="val">₹{{RCF}}<small>cr</small></div><div class="sub">HSBC 250 · Citi 250 · SCB 100</div></div></div>
+ </div>
+ <div class="row g-3 mb-3">
+  <div class="col-xl-8"><div class="cardx">
+   <div class="ch"><div><div class="ct">Group cash: actuals, forecast and band (INR cr)</div><div class="cs">Hollow points = what we forecast for that week one week earlier</div></div></div>
+   <v-chart :config="cfg" :height="340" label="Group 13-week cash forecast"/>
+  </div></div>
+  <div class="col-xl-4"><div class="cardx dark-card">
+   <div class="small2 fw7" style="letter-spacing:.12em;color:#ffe600">EARLY WARNING · WEEK {{LOW.w}}</div>
+   <p class="mt-2 mb-2" style="font-size:14px;line-height:1.55">Advance tax (₹225 cr) and the interim dividend (₹364 cr) pull the forecast down to <b>₹{{nf(LOW.v)}} cr</b>. The 90% lower band sits only <b style="color:#ffe600">₹{{LOW.headLo}} cr</b> above the ₹{{MIN}} cr minimum.</p>
+   <p class="mb-3 small2" style="color:#c3c2b7">Action: Group Treasurer arranges pool funding by week 5 instead of borrowing in a hurry.</p>
+   <div class="small2 fw6 mb-1" style="color:#c3c2b7">Minimum cash = entity buffers + strategic reserve</div>
+   <div class="stack"><div style="width:68.75%;background:#3987e5"></div><div style="width:31.25%;background:#9085e9"></div></div>
+   <div class="d-flex justify-content-between small2 mt-1" style="color:#c3c2b7"><span>Operating buffers ₹550 cr</span><span>Reserve ₹250 cr</span></div>
+  </div></div>
+ </div>
+ <div class="row g-3">
+  <div class="col-xl-8"><div class="cardx">
+   <div class="ch"><div><div class="ct">Weekly flows behind the forecast (INR cr)</div><div class="cs">Table view of the chart</div></div></div>
+   <div class="tscroll"><table class="tbl"><thead><tr><th>Week</th><th class="r">Receipts</th><th class="r">Payments</th><th class="r">Tax, dividend, capex, debt</th><th class="r">Net</th><th class="r">Closing</th><th class="r">Lower band</th><th class="r">Headroom</th></tr></thead><tbody>
+    <tr v-for="r in rows" :key="r.w" :class="{sel:r.w===LOW.w}"><td class="fw6">W{{r.w}}</td><td class="r">{{nf(r.rec)}}</td><td class="r">{{nf(r.pay)}}</td><td class="r" :title="r.td?'Tax and dividend ₹'+r.td+' cr':''">{{nf(r.td+r.cd)}}</td><td class="r" :style="{color:r.net<0?'var(--crit-t)':'var(--good-t)'}">{{r.net>0?'+':''}}{{nf(r.net)}}</td><td class="r fw6">{{nf(r.close)}}</td><td class="r">{{nf(r.lo)}}</td><td class="r"><s-chip :s="r.lo-MIN<50?'warn':'good'" :text="'₹'+nf(r.lo-MIN)"/></td></tr>
+   </tbody></table></div>
+  </div></div>
+  <div class="col-xl-4"><div class="cardx">
+   <div class="ch"><div><div class="ct">Last week: forecast vs actual by entity</div><div class="cs">Net cash flow, INR cr · alert above ±{{store.th.miss}}%</div></div></div>
+   <div class="tscroll"><table class="tbl"><thead><tr><th>Entity</th><th class="r">Forecast</th><th class="r">Actual</th><th class="r">Miss</th></tr></thead><tbody>
+    <tr v-for="e in varRows" :key="e.code"><td class="nw">{{e.country}}</td><td class="r">{{nf(e.fcNet,1)}}</td><td class="r">{{nf(e.fcNet*(1+e.miss/100),1)}}</td><td class="r"><s-chip :s="Math.abs(e.miss)>store.th.miss?'crit':Math.abs(e.miss)>store.th.miss*0.7?'warn':'good'" :text="sgn(e.miss)+'%'"/></td></tr>
+   </tbody></table></div>
+   <div class="small2 muted mt-2" v-if="!grp">The 13-week forecast is a group object; regional desks see it read-only and own their entities' variances.</div>
+  </div></div>
+ </div>
+</div>`,
+computed:{
+  LOW:()=>LOW, RCF:()=>RCF_TOTAL, MIN:()=>MIN_CASH,
+  cfg(){ return runwayConfig(this.P, false); },
+  rows(){ return Array.from({length:13},(_,k)=>({ w:k+1, rec:RUN.R[k], pay:RUN.P[k]+RUN.payroll[k], td:RUN.tax[k]+RUN.div[k], cd:RUN.capex[k]+RUN.debt[k], net:RUN.net[k], close:RUN.fc[k], lo:Math.round(RUN.fc[k]*(1-bandPct(k+1))) })); },
+  varRows(){ return this.ents.slice().sort((a,b)=>Math.abs(b.miss)-Math.abs(a.miss)); },
+} };
+
+/* ---------------- COUNTERPARTY ---------------- */
+const CounterpartyView = { mixins:[shared], components:{ SChip, ViewHead, UBar },
+template:`<div>
+ <view-head title="Counterparty heatmap" sub="Exposure to each bank and investment against its policy limit; limits are a share of group cash, checked in the TMS before every deal" q="Q · A · B"/>
+ <div class="row g-3 mb-3">
+  <div class="col-6 col-lg-3"><div class="cardx stat"><div class="lbl">Limit breaches</div><div class="val">{{breaches.length}}</div><div class="sub"><s-chip s="crit" :text="breaches.map(b=>b.name).join(', ')||'None'"/></div></div></div>
+  <div class="col-6 col-lg-3"><div class="cardx stat"><div class="lbl">Near cap (≥ {{store.th.limitWarn}}%)</div><div class="val">{{near.length}}</div><div class="sub">{{near.map(b=>b.name).join(', ')||'None'}}</div></div></div>
+  <div class="col-6 col-lg-3"><div class="cardx stat"><div class="lbl">Largest counterparty</div><div class="val">{{pct(top.share)}}</div><div class="sub">{{top.name}} · cap {{top.capPct}}%</div></div></div>
+  <div class="col-6 col-lg-3"><div class="cardx stat"><div class="lbl">Legacy banks in run-off</div><div class="val">₹{{nf(legacy.amount)}}<small>cr</small></div><div class="sub">7 banks · exit by month 24</div></div></div>
+ </div>
+ <div class="cardx mb-3">
+  <div class="ch"><div><div class="ct">Exposure by region (INR cr) and utilisation of the group limit</div><div class="cs">Cell shade = size of exposure · utilisation colour: green &lt; {{store.th.limitWarn}}%, amber ≥ {{store.th.limitWarn}}%, red over cap</div></div></div>
+  <div class="tscroll"><table class="tbl heat"><thead><tr><th>Counterparty</th><th>Tier · rating</th><th class="r" v-for="r in regs" :key="r">{{r}}</th><th class="r">Group total</th><th class="r">% of group</th><th class="r">Cap</th><th style="min-width:150px">Utilisation</th><th>Status</th></tr></thead>
+   <tbody>
+    <tr v-for="c in rows" :key="c.id">
+     <td class="fw6"><span class="dot" :style="{background:'var(--'+c.col+')'}"></span> {{c.name}}</td>
+     <td class="small2"><div>{{c.tier}}</div><div class="muted">{{c.rating}}{{c.exception?' · exception':''}}</div></td>
+     <td v-for="r in regs" :key="r" class="hc" :style="cellStyle(c.reg[r])" @mouseenter="tip($event,c.name+' · '+r,[[cr(c.reg[r]),'exposure'],[pct(c.reg[r]/GC*100),'of group cash']])" @mouseleave="untip">{{c.reg[r]?nf(c.reg[r]):'—'}}</td>
+     <td class="r fw6">{{nf(c.amount)}}</td><td class="r">{{pct(c.share)}}</td><td class="r">{{c.capPct?c.capPct+'%':'No cap'}}</td>
+     <td><u-bar v-if="c.capPct" :util="c.util" :s="c.st"/><span v-else class="small2 muted">{{c.runoff?'Run-off to zero':'Sovereign'}}</span></td>
+     <td><s-chip :s="c.st" :text="c.stt"/></td>
+    </tr>
+   </tbody></table></div>
+  <div class="small2 muted mt-2">Investments are held by GTC Mumbai, so they show under Asia. Standard Bank: {{SB.exception}}.</div>
+ </div>
+ <div class="row g-3">
+  <div class="col-lg-6"><div class="cardx dark-card">
+   <div class="d-flex align-items-center gap-2 mb-2"><i class="bi bi-shield-exclamation" style="color:#ffe600;font-size:20px"></i><div class="fw7" style="color:#ffe600">Concentration guard</div></div>
+   <p style="font-size:14px;line-height:1.55" class="mb-2">Standard Chartered holds <b>{{pct(scb.share)}}</b> of group cash against its 15% cap: <b>{{cr(scb.amount-scb.capAmt)}} over</b>. HSBC is at {{pct(hsbc.util,0)}} of its cap, so the excess should not move there.</p>
+   <p class="small2 mb-3" style="color:#c3c2b7">Proposed: sweep {{cr(Math.ceil(scb.amount-scb.capAmt))}} from SCB UK and Germany balances to AAA liquid fund A (headroom {{cr(mmf.capAmt-mmf.amount)}}). Needs dual approval: Group Treasurer and Risk &amp; Control.</p>
+   <button class="btnx brand" :disabled="store.sweepProposed || !(role.id==='gt'||role.id==='cfo'||role.id==='risk')" @click="propose">{{store.sweepProposed?'Sweep proposed · awaiting 2nd approval':'Propose sweep'}}</button>
+   <span class="small2 ms-2" style="color:#a9a8a0" v-if="!(role.id==='gt'||role.id==='cfo'||role.id==='risk')">Group Treasurer or Risk &amp; Control only</span>
+  </div></div>
+  <div class="col-lg-6"><div class="cardx">
+   <div class="ch"><div><div class="ct">Rating and tenor checks</div><div class="cs">Policy: security first, then liquidity, then yield</div></div></div>
+   <div class="tscroll"><table class="tbl"><thead><tr><th>Counterparty</th><th>Rating vs min.</th><th>Longest deposit vs max.</th></tr></thead><tbody>
+    <tr v-for="b in banks" :key="b.id"><td>{{b.name}}</td><td><s-chip :s="b.exception?'warn':'good'" :text="b.rating+' vs '+b.minRating+(b.exception?' · exception':'')"/></td><td><s-chip :s="b.longest<=b.maxTenor?'good':'crit'" :text="b.longest+' m vs '+b.maxTenor+' m'"/></td></tr>
+    <tr><td>AAA money market funds</td><td><s-chip s="good" text="AAA vs AAA"/></td><td><s-chip s="good" text="Daily liquidity"/></td></tr>
+   </tbody></table></div>
+  </div></div>
+ </div>
+</div>`,
+computed:{
+  GC:()=>GROUP_CASH, SB:()=>BANKS.find(b=>b.id==='SB'),
+  regs(){ return this.role.regions; },
+  rows(){ const th=store.th.limitWarn; return COUNTERPARTIES.map(c=>{ const reg={}; this.regs.forEach(r=>{ reg[r] = c.type==='invest' ? (r==='Asia'?c.amount:0) : bankTotal(c.id, ENT.filter(e=>e.region===r)); }); let st='good', stt='Within limit'; if(c.runoff){ st='warn'; stt='Exit in progress'; } else if(!c.capPct){ st='good'; stt='No cap'; } else if(c.util>100){ st='crit'; stt='Breach'; } else if(c.util>=th){ st='warn'; stt='Near cap'; } return { ...c, reg, st, stt }; }); },
+  breaches(){ return this.rows.filter(c=>c.st==='crit'); },
+  near(){ return this.rows.filter(c=>c.stt==='Near cap'); },
+  top(){ return COUNTERPARTIES.filter(c=>c.capPct).sort((a,b)=>b.share-a.share)[0]; },
+  legacy(){ return cpOf('Legacy'); }, scb(){ return cpOf('SCB'); }, hsbc(){ return cpOf('HSBC'); }, mmf(){ return cpOf('MMF1'); },
+  banks(){ return BANKS.filter(b=>!b.runoff); },
+  maxCell(){ return Math.max(...this.rows.flatMap(c=>this.regs.map(r=>c.reg[r]))); },
+},
+methods:{ cellStyle(v){ if(!v) return { color:'var(--ink-3)' }; const a = 0.08 + 0.72*Math.sqrt(v/this.maxCell); return { background:'rgba(var(--heat),'+a.toFixed(2)+')', color: a>0.55 ? '#fff' : 'var(--ink)', fontWeight: 600 }; },
+  propose(){ store.sweepProposed=true; const c=cpOf('SCB'); logAudit('Proposed concentration sweep', cr(Math.ceil(c.amount-c.capAmt))+' SCB → AAA liquid fund A; awaiting second approval'); toast('good','Sweep proposed','Awaiting second approval from Risk & Control.'); } } };
+
+/* ---------------- FX ---------------- */
+const FxView = { mixins:[shared], components:{ VChart, SChip, ViewHead },
+data(){ return { sel:null } },
+created(){ const firstOut = this.pairs.find(p=>!pairOk(p)); this.sel = (firstOut||this.pairs[0]).pair; },
+template:`<div>
+ <view-head title="FX exposure" sub="Open exposure against the layered hedge bands, by currency pair, after monthly intercompany netting" q="Q · B"/>
+ <div class="row g-3 mb-3">
+  <div class="col-6 col-lg-3"><div class="cardx stat"><div class="lbl">Forecast exposure, 12 m (net)</div><div class="val">₹{{nf(totNet)}}<small>cr</small></div><div class="sub">₹{{nf(totGross-totNet)}} cr removed by netting first</div></div></div>
+  <div class="col-6 col-lg-3"><div class="cardx stat"><div class="lbl">Hedged</div><div class="val">{{pct(totHedged/totNetH*100)}}</div><div class="sub">₹{{nf(totHedged)}} cr in forwards</div></div></div>
+  <div class="col-6 col-lg-3"><div class="cardx stat"><div class="lbl">Regions in band</div><div class="val">{{regsIn}} of {{role.regions.length}}</div><div class="sub">target: all in band by month 24</div></div></div>
+  <div class="col-6 col-lg-3"><div class="cardx stat"><div class="lbl">Cells out of band</div><div class="val">{{outCells}}</div><div class="sub"><s-chip :s="outCells?'crit':'good'" :text="outCells?'Desk action needed':'All in band'"/></div></div></div>
+ </div>
+ <div class="row g-3 mb-3">
+  <div class="col-xl-7"><div class="cardx">
+   <div class="ch"><div><div class="ct">Hedge ratio by tenor vs policy band</div><div class="cs">Targets 75 / 50 / 35 / 25% ± 10 · click a row for detail</div></div></div>
+   <div class="tscroll"><table class="tbl"><thead><tr><th>Pair</th><th>Exposure</th><th class="c" v-for="(b,i) in BK" :key="b">{{b}}<div class="muted" style="text-transform:none;letter-spacing:0;font-weight:400">{{BD[i][0]}}–{{BD[i][1]}}%</div></th><th>Status</th></tr></thead><tbody>
+    <tr v-for="p in pairs" :key="p.pair" class="click" :class="{sel:sel===p.pair}" @click="sel=p.pair">
+     <td class="fw6">{{p.pair}}</td><td class="small2">{{p.who}}<div class="muted">{{p.region}}</div></td>
+     <td v-for="(c,i) in p.cells" :key="i" class="c">
+      <span v-if="c==='exempt'" class="muted small2">—</span>
+      <span v-else class="chip" :class="c==='in'?'good':'crit'" @mouseenter="tip($event,p.pair+' · '+BK[i],[[p.ratio[i]+'%','hedged'],[BD[i][0]+'–'+BD[i][1]+'%','policy band'],[cr(p.net[i]),'net exposure']])" @mouseleave="untip"><i class="bi" :class="c==='in'?'bi-check-circle-fill':c==='under'?'bi-arrow-down-circle-fill':'bi-arrow-up-circle-fill'"></i>{{p.ratio[i]}}%</span>
+     </td>
+     <td><s-chip :s="p.exempt?'neutral':pairOk(p)?'good':'crit'" :text="p.exempt?'Exempt (peg)':pairOk(p)?'In band':'Out of band'"/></td>
+    </tr>
+   </tbody></table></div>
+  </div></div>
+  <div class="col-xl-5"><div class="cardx">
+   <div class="ch"><div><div class="ct">{{selP.pair}} · hedge ratio vs band</div><div class="cs">{{selP.who}} · {{selP.exempt?'Pegged currency, exempt by Treasury Committee':'net exposure ₹'+nf(sumA(selP.net))+' cr over 12 m'}}</div></div></div>
+   <v-chart v-if="!selP.exempt" :config="bandCfg" :height="260" :label="selP.pair+' hedge ratio by tenor'"/>
+   <div v-else class="small2 ink2 py-4">AED is pegged to the US dollar, so the Treasury Committee exempted USD/AED from the layered hedging rule. Exposure is still tracked here.</div>
+   <div class="small2 mt-2" v-if="!selP.exempt && !pairOk(selP)"><s-chip s="crit" text="Action"/> {{selP.region}} desk to add forwards: {{actionText}}</div>
+  </div></div>
+ </div>
+ <div class="row g-3">
+  <div class="col-xl-7"><div class="cardx">
+   <div class="ch"><div><div class="ct">Hedged vs open exposure, next 12 months (INR cr)</div><div class="cs">Open = forecast exposure not yet covered by forwards</div></div></div>
+   <v-chart :config="stackCfg" :height="Math.max(220, 34*hedgeable.length+60)" label="Hedged and open exposure by pair"/>
+  </div></div>
+  <div class="col-xl-5"><div class="cardx">
+   <div class="ch"><div><div class="ct">Net first, then hedge</div><div class="cs">Monthly intercompany netting runs before any hedge is placed</div></div></div>
+   <div class="mb-3" v-for="r in netRows" :key="r.k">
+    <div class="d-flex justify-content-between small2"><span>{{r.k}}</span><b class="tnum">{{cr(r.v)}}</b></div>
+    <div class="hbar mt-1"><div class="t"><div class="f" :style="{width:r.v/totGross*100+'%', background:r.c}"></div></div></div>
+   </div>
+   <div class="small2 ink2">Transaction exposure: forwards inside the band, executed by the regional desks. Translation exposure: monitored, hedged only on a Treasury Committee decision.</div>
+  </div></div>
+ </div>
+</div>`,
+computed:{
+  BK:()=>BUCKETS, BD:()=>BAND,
+  pairs(){ return FXEXP.filter(p=>this.role.regions.includes(p.region)); },
+  hedgeable(){ return this.pairs.filter(p=>!p.exempt); },
+  selP(){ return this.pairs.find(p=>p.pair===this.sel) || this.pairs[0]; },
+  totNet(){ return sum(this.pairs.map(p=>sum(p.net))); },
+  totNetH(){ return sum(this.hedgeable.map(p=>sum(p.net))); },
+  totGross(){ return sum(this.pairs.map(p=>sum(p.gross))); },
+  totHedged(){ return Math.round(sum(this.hedgeable.map(pairHedged))); },
+  regsIn(){ return this.role.regions.filter(r=>FXEXP.filter(p=>p.region===r).every(pairOk)).length; },
+  outCells(){ return sum(this.pairs.map(p=>p.cells.filter(c=>c==='under'||c==='over').length)); },
+  actionText(){ const p=this.selP; return p.cells.map((c,i)=> c==='under' ? BUCKETS[i]+' +'+(BAND[i][0]-p.ratio[i])+' pts (≈ '+cr(p.net[i]*(BAND[i][0]-p.ratio[i])/100)+')' : c==='over' ? BUCKETS[i]+' −'+(p.ratio[i]-BAND[i][1])+' pts' : null).filter(Boolean).join('; '); },
+  bandCfg(){ const P=this.P, p=this.selP; return markRaw({ type:'bar', data:{ labels:BUCKETS, datasets:[
+      { type:'line', label:'Actual hedge ratio', data:p.ratio, showLine:false, pointStyle:'rectRot', pointRadius:8, pointHoverRadius:9, pointBackgroundColor:p.cells.map(c=>c==='in'?P.good:P.crit), pointBorderColor:P.surface, pointBorderWidth:2, borderColor:P.ink, backgroundColor:P.ink, order:0 },
+      { label:'Policy band (target ± 10)', data:BAND, backgroundColor:P.s1a, borderColor:P.s1, borderWidth:1, borderSkipped:false, borderRadius:4, barPercentage:.55, order:2 },
+    ]}, options:{ responsive:true, maintainAspectRatio:false, animation:{duration:250},
+      plugins:{ legend:legendOpts(P), tooltip:tipOpts(P,{ callbacks:{ label:it=> it.dataset.type==='line' ? ' Hedged: '+it.raw+'% ('+(p.cells[it.dataIndex]==='in'?'in band':p.cells[it.dataIndex]+' band')+')' : ' Band: '+it.raw[0]+'–'+it.raw[1]+'%' } }) },
+      scales: scalesXY(P, { min:0, max:100, ticks:{ color:P.ink3, callback:v=>v+'%' } }) } }); },
+  stackCfg(){ const P=this.P, ps=this.hedgeable; return markRaw({ type:'bar', data:{ labels:ps.map(p=>p.pair), datasets:[
+      { label:'Hedged', data:ps.map(p=>Math.round(pairHedged(p))), backgroundColor:P.s1, borderRadius:{topLeft:0,bottomLeft:0,topRight:0,bottomRight:0}, barPercentage:.7 },
+      { label:'Open', data:ps.map(p=>Math.round(sum(p.net)-pairHedged(p))), backgroundColor:P.s2, borderRadius:{topRight:4,bottomRight:4}, barPercentage:.7 },
+    ]}, options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, animation:{duration:250}, interaction:{mode:'index', intersect:false}, datasets:{ bar:{ borderColor:P.surface, borderWidth:{right:2} } },
+      plugins:{ legend:legendOpts(P), tooltip:tipOpts(P,{ callbacks:{ label:it=>' '+it.dataset.label+': ₹'+nf(it.raw)+' cr' } }) },
+      scales:{ x:{ stacked:true, grid:{color:P.grid}, ticks:{color:P.ink3, callback:v=>'₹'+nf(v)}, border:{display:false} }, y:{ stacked:true, grid:{display:false}, ticks:{color:P.ink2}, border:{color:P.axis} } } } }); },
+  netRows(){ const g=this.totGross, n=this.totNet, h=this.totHedged; return [ { k:'Gross intercompany and third-party exposure', v:g, c:'var(--neutral)' }, { k:'Net exposure after monthly netting', v:n, c:'var(--s1)' }, { k:'Hedged with forwards', v:h, c:'var(--s3)' } ]; },
+},
+methods:{ pairOk, sumA:sum } };
+
+/* ---------------- PAYMENTS ---------------- */
+const PaymentsView = { mixins:[shared], components:{ VChart, SChip, ViewHead },
+template:`<div>
+ <view-head title="Payment factory monitor" sub="TSSC India: volumes, automation, exceptions, sanctions screening and bank cut-offs" q="Q · D"/>
+ <div class="row g-3 mb-3">
+  <div class="col-6 col-md-4 col-xl-2"><div class="cardx stat hl"><div class="lbl">Payments today</div><div class="val">{{nf(n)}}</div><div class="sub">{{cr(v)}}</div></div></div>
+  <div class="col-6 col-md-4 col-xl-2"><div class="cardx stat"><div class="lbl">STP rate</div><div class="val">{{pct(stp)}}</div><div class="sub">month-24 target ≥ 90%</div></div></div>
+  <div class="col-6 col-md-4 col-xl-2"><div class="cardx stat"><div class="lbl">Open exceptions</div><div class="val">{{excN}}</div><div class="sub">oldest 3h 10m</div></div></div>
+  <div class="col-6 col-md-4 col-xl-2"><div class="cardx stat"><div class="lbl">Sanctions screened</div><div class="val">100%</div><div class="sub">6 potential matches · 1 held</div></div></div>
+  <div class="col-6 col-md-4 col-xl-2"><div class="cardx stat"><div class="lbl">Awaiting approval</div><div class="val">{{nf(scale(198))}}</div><div class="sub">dual approval in the TMS</div></div></div>
+  <div class="col-6 col-md-4 col-xl-2"><div class="cardx stat"><div class="lbl">Next cut-off</div><div class="val">{{next?next.ccy:'—'}}</div><div class="sub">{{next?next.t:'All closed'}}</div></div></div>
+ </div>
+ <div class="row g-3 mb-3">
+  <div class="col-xl-5"><div class="cardx">
+   <div class="ch"><div><div class="ct">Today's pipeline</div><div class="cs">ERP → validation → screening → approval → bank</div></div></div>
+   <div v-for="(s,i) in pipe" :key="s[0]" class="mb-2">
+    <div class="d-flex justify-content-between small2"><span>{{s[0]}}</span><b class="tnum">{{nf(s[1])}}</b></div>
+    <div class="hbar mt-1"><div class="t"><div class="f" :style="{width:s[1]/pipe[0][1]*100+'%', background: i===2?'var(--s3)':'var(--s1)'}"></div></div></div>
+   </div>
+  </div></div>
+  <div class="col-xl-7"><div class="cardx">
+   <div class="ch"><div><div class="ct">Payments released to banks by hour (IST)</div><div class="cs">Single SWIFT channel, ISO 20022 pain.001</div></div></div>
+   <v-chart :config="hourCfg" :height="250" label="Payments released per hour"/>
+  </div></div>
+ </div>
+ <div class="row g-3 mb-3">
+  <div class="col-xl-7"><div class="cardx">
+   <div class="ch"><div><div class="ct">Cut-off monitor</div><div class="cs">Bank cut-offs converted to IST · clock {{clock}} IST</div></div></div>
+   <div class="tscroll"><table class="tbl"><thead><tr><th>Ccy</th><th>Bank · rail</th><th>Local</th><th>IST</th><th class="r">Pending</th><th>Status</th></tr></thead><tbody>
+    <tr v-for="c in cuts" :key="c.ccy"><td class="fw6">{{c.ccy}}</td><td class="small2">{{c.bank}}<div class="muted">{{c.rail}}</div></td><td class="small2">{{c.local}}</td><td class="tnum">{{c.istStr}}</td><td class="r">{{c.pending}}<div class="small2 muted">{{c.val}}</div></td><td><s-chip :s="c.s" :text="c.t"/><div class="small2 muted" v-if="c.note">{{c.note}}</div></td></tr>
+   </tbody></table></div>
+  </div></div>
+  <div class="col-xl-5"><div class="cardx">
+   <div class="ch"><div><div class="ct">Sanctions screening</div><div class="cs">100% of payments screened before release</div></div></div>
+   <table class="tbl"><tbody><tr v-for="x in sanc" :key="x.party"><td class="small2">{{x.party}}<div class="muted">{{entName(x.ent)}} · {{x.score}}% match</div></td><td><s-chip :s="x.s" :text="x.result"/></td></tr></tbody></table>
+   <div class="ct mt-3 mb-2" style="font-size:13.5px">Exceptions by type (group)</div>
+   <div v-for="t in excTypes" :key="t[0]" class="hbar mb-1"><span class="small2" style="width:190px">{{t[0]}}</span><div class="t"><div class="f" :style="{width:t[1]/11*100+'%', background:'var(--s1)'}"></div></div><span class="small2 tnum" style="width:20px;text-align:right">{{t[1]}}</span></div>
+  </div></div>
+ </div>
+ <div class="row g-3">
+  <div class="col-xl-8"><div class="cardx">
+   <div class="ch"><div><div class="ct">Exception queue</div><div class="cs">Oldest and highest-risk first · {{exc.length}} shown</div></div></div>
+   <div class="tscroll"><table class="tbl"><thead><tr><th>ID</th><th>Entity</th><th class="r">Amount</th><th>Reason</th><th>Age</th><th>Owner</th><th>Status</th></tr></thead><tbody>
+    <tr v-for="x in exc" :key="x.id"><td class="fw6 tnum nw">{{x.id}}</td><td>{{entName(x.ent)}}</td><td class="r">{{x.amt}}</td><td class="small2">{{x.type}}</td><td class="small2">{{x.age}}</td><td class="small2">{{x.owner}}</td><td><s-chip :s="x.sev" :text="x.status"/></td></tr>
+   </tbody></table></div>
+  </div></div>
+  <div class="col-xl-4"><div class="cardx">
+   <div class="ch"><div><div class="ct">STP rate by entity</div><div class="cs">Month-12 target 70% · month-24 ≥ 90%</div></div></div>
+   <div v-for="e in stpRows" :key="e.code" class="hbar mb-2" @mouseenter="tip($event,e.name,[[e.stp+'%','STP'],[nf(e.pay),'payments today']])" @mouseleave="untip">
+    <span class="small2" style="width:92px">{{e.country}}</span>
+    <div class="t"><div class="f" :style="{width:e.stp+'%', background:e.stp<70?'var(--crit)':e.stp<80?'var(--warn)':'var(--s1)'}"></div></div>
+    <span class="small2 tnum fw6" style="width:36px;text-align:right">{{e.stp}}%</span>
+   </div>
+   <div class="small2 muted">Red below 70%, amber below the 80% month-18 glide path.</div>
+  </div></div>
+ </div>
+</div>`,
+computed:{
+  clock(){ return hhmm(store.clockMin); },
+  share(){ return sum(this.ents.map(e=>e.pay))/2840; },
+  scale(){ return x => Math.round(x*this.share); },
+  n(){ return sum(this.ents.map(e=>e.pay)); }, v(){ return sum(this.ents.map(e=>e.payVal)); },
+  stp(){ return sum(this.ents.map(e=>e.stp*e.pay))/this.n; },
+  exc(){ return EXCEPTIONS.filter(x=>this.ents.some(e=>e.code===x.ent)); },
+  excN(){ return this.grp ? 38 : this.exc.length; },
+  pipe(){ return PIPE.map(p=>[p[0], this.scale(p[1])]); },
+  cuts(){ return cutoffRows().filter(c=>this.role.regions.includes(c.region)); },
+  next(){ return this.cuts.filter(c=>c.left>0).sort((a,b)=>a.left-b.left)[0]; },
+  sanc(){ return SANCTIONS.filter(x=>this.ents.some(e=>e.code===x.ent)); },
+  excTypes:()=>EXC_TYPES,
+  stpRows(){ return this.ents.slice().sort((a,b)=>b.stp-a.stp); },
+  hourCfg(){ const P=this.P; const h=Math.floor(store.clockMin/60); const labs=HOURLY.labels.filter(l=>+l<=h); return markRaw({ type:'bar', data:{ labels:labs.map(l=>l+':00'), datasets:[{ label:'Payments released', data:HOURLY.vals.slice(0,labs.length).map(this.scale), backgroundColor:P.s1, borderRadius:{topLeft:4,topRight:4}, borderSkipped:'bottom', barPercentage:.7, categoryPercentage:.85 }] },
+    options:{ responsive:true, maintainAspectRatio:false, animation:{duration:250}, plugins:{ legend:{display:false}, tooltip:tipOpts(P,{ callbacks:{ label:it=>' '+nf(it.raw)+' payments' } }) }, scales:scalesXY(P) } }); },
+} };
+
+/* ---------------- KPI ---------------- */
+const KpiView = { mixins:[shared], components:{ SChip, ViewHead, Spark },
+data(){ return { table:false } },
+template:`<div>
+ <view-head title="KPI scorecard" sub="All 12 KPIs with today's value, the month-12 and month-24 targets, and drill-down to each entity" q="Q · F"/>
+ <div class="filters"><div class="seg"><button :class="{on:!table}" @click="table=false">Cards</button><button :class="{on:table}" @click="table=true">Table (slide XV)</button></div>
+  <span class="small2 muted ms-2">Status vs the month-18 glide path: <s-chip s="good" text="Met / on track"/> <s-chip s="warn" text="Watch"/> <s-chip s="crit" text="Behind month-12 target"/></span></div>
+ <template v-if="!table">
+  <div class="row g-3 mb-3">
+    <div class="col-md-6 col-xxl-3 col-xl-4" v-for="k in rows" :key="k.k.id">
+     <div class="cardx kpi" :class="{sel:store.kpiSel===k.k.id}" @click="store.kpiSel=k.k.id; scrollDrill()" tabindex="0" @keydown.enter="store.kpiSel=k.k.id; scrollDrill()">
+      <div class="ar">{{k.k.area}}</div>
+      <div class="d-flex justify-content-between align-items-start gap-2"><div><div class="fw6">{{k.k.name}}</div><div class="small2 muted">{{k.k.def}}</div></div><s-chip :s="k.st.s" :text="k.st.t"/></div>
+      <div class="d-flex justify-content-between align-items-end mt-1"><div><div class="kv">{{k.a.text}}</div><div class="small2 ink2" v-if="k.a.sub">{{k.a.sub}}</div></div><spark :data="k.trend" :color="sparkCol(k.st.s)"/></div>
+      <div class="tg"><span>Baseline <b>{{k.k.base}}</b></span><span>M12 <b>{{k.k.t12}}</b></span><span>M24 <b>{{k.k.t24}}</b></span><span class="ms-auto">{{k.k.review}}</span></div>
+     </div>
+    </div>
+  </div>
+ </template>
+ <div v-else class="cardx mb-3"><div class="tscroll"><table class="tbl"><thead><tr><th>Area</th><th>KPI</th><th>Definition</th><th>Baseline</th><th>Month 12</th><th>Month 24</th><th>Now (M18)</th><th>Status</th><th>Review</th></tr></thead><tbody>
+  <tr v-for="k in rows" :key="k.k.id" class="click" :class="{sel:store.kpiSel===k.k.id}" @click="store.kpiSel=k.k.id; scrollDrill()"><td class="small2 muted">{{k.k.area}}</td><td class="fw6">{{k.k.name}}</td><td class="small2">{{k.k.def}}</td><td class="small2">{{k.k.base}}</td><td class="small2">{{k.k.t12}}</td><td class="small2">{{k.k.t24}}</td><td class="fw6">{{k.a.text}}</td><td><s-chip :s="k.st.s" :text="k.st.t"/></td><td class="small2">{{k.k.review}}</td></tr>
+ </tbody></table></div></div>
+ <div class="cardx" ref="drill">
+  <div class="ch"><div><div class="ct">Drill-down · {{selK.name}} by entity</div><div class="cs">{{selK.def}} · month-12 {{selK.t12}} · month-24 {{selK.t24}}</div></div><span class="small2 muted">{{ents.length}} entities in scope</span></div>
+  <div class="tscroll"><table class="tbl"><thead><tr><th>Entity</th><th>Region</th><th class="r">Value</th><th style="min-width:160px"></th><th>Status</th></tr></thead><tbody>
+   <tr v-for="r in drill" :key="r.e.code"><td class="fw6">{{r.e.name}}</td><td class="small2 muted">{{r.e.region}}</td><td class="r fw6">{{r.x.text}}<div class="small2 muted" v-if="r.x.sub">{{r.x.sub}}</div></td>
+    <td><div class="hbar"><div class="t"><div class="f" :style="{width:r.w+'%', background:r.st?('var(--'+(r.st.s==='good'?'s1':r.st.s)+')'):'var(--s1)'}"></div></div></div></td>
+    <td><s-chip v-if="r.st" :s="r.st.s" :text="r.st.t"/><span v-else class="small2 muted">Group-level KPI</span></td></tr>
+  </tbody></table></div>
+ </div>
+</div>`,
+computed:{
+  areas:()=>['Visibility','Liquidity','Cost','Efficiency','Risk and compliance'],
+  rows(){ return KPIS.map(k=>{ const a=k.agg(this.ents, this.grp, this.role.regions); const st=a.st||kpiStatus(a.v,k.m12,k.m24,k.dir); return { k, a, st, trend:trendFor(k, a.v) }; }); },
+  selK(){ return KPIS.find(k=>k.id===store.kpiSel) || KPIS[0]; },
+  drill(){ const k=this.selK; const xs=this.ents.map(e=>({ e, x:k.ent(e) })); const mx=Math.max(...xs.map(r=>Math.abs(r.x.v)), 1);
+    return xs.map(r=>({ ...r, st: r.x.noStatus ? null : (r.x.st || kpiStatus(r.x.v,k.m12,k.m24,k.dir)), w: Math.abs(r.x.v)/mx*100 })).sort((a,b)=> k.dir>0 ? a.x.v-b.x.v : b.x.v-a.x.v); },
+},
+methods:{ sparkCol(s){ return (s==='good'||s==='info')?this.P.s1:this.P[s]; }, scrollDrill(){ nextTick(()=>{ const el=this.$refs.drill; if(el && el.scrollIntoView) el.scrollIntoView({behavior:'smooth', block:'start'}); }); } } };
+
+/* ---------------- GIFT CITY ---------------- */
+const GiftView = { mixins:[shared], components:{ SChip, ViewHead },
+template:`<div>
+ <view-head title="GIFT City GRCTC" sub="The offshore treasury hub runs the in-house bank and cross-border liquidity for overseas subsidiaries; the INR pool stays onshore in Mumbai" q="Q · A"/>
+ <div class="banner"><i class="bi bi-exclamation-triangle-fill"></i><div><b>Subject to tax and legal review.</b> Built on IFSCA's framework for Global / Regional Corporate Treasury Centres (25 June 2021, revised framework effective 4 April 2025). Intercompany pricing at arm's length per OECD guidance on financial transactions (2020); FEMA and local-country rules apply to every flow.</div></div>
+ <div class="row g-3 mb-3">
+  <div class="col-6 col-lg-3"><div class="cardx stat hl"><div class="lbl">Loans to entities</div><div class="val">₹{{nf(loans,1)}}<small>cr</small></div><div class="sub">{{rows.filter(r=>r.dir==='Loan to').length}} positions</div></div></div>
+  <div class="col-6 col-lg-3"><div class="cardx stat"><div class="lbl">Deposits from entities</div><div class="val">₹{{nf(deps,1)}}<small>cr</small></div><div class="sub">surplus that earns more than locally</div></div></div>
+  <div class="col-6 col-lg-3"><div class="cardx stat"><div class="lbl">Annual interest saving</div><div class="val">₹{{nf(saving,2)}}<small>cr</small></div><div class="sub">vs the external lines replaced</div></div></div>
+  <div class="col-6 col-lg-3"><div class="cardx stat"><div class="lbl">Netting this month</div><div class="val">−59%</div><div class="sub">₹142 cr gross → ₹58 cr settled · 96 → 14 payments</div></div></div>
+ </div>
+ <div class="row g-3 mb-3">
+  <div class="col-xl-7"><div class="cardx">
+   <div class="ch"><div><div class="ct">Structure</div><div class="cs">Who holds which cash, and where it moves</div></div></div>
+   <svg class="dg" viewBox="0 0 800 360" role="img" aria-label="Treasury structure: onshore Mumbai, GIFT City GRCTC, overseas headers">
+    <rect class="zone" x="10" y="20" width="200" height="320" rx="10"/><text class="t3" x="26" y="44">ONSHORE INDIA</text>
+    <rect class="zone-y" x="255" y="20" width="250" height="320" rx="10"/><text class="t3" x="271" y="44">GIFT CITY IFSC</text>
+    <rect class="zone" x="550" y="20" width="240" height="320" rx="10"/><text class="t3" x="566" y="44">OVERSEAS</text>
+    <rect class="box" x="26" y="62" width="168" height="74" rx="7"/><text class="t1" x="38" y="86">GTC Mumbai</text><text class="t2" x="38" y="104">Group Treasurer · policy</text><text class="t2" x="38" y="120">INR liquidity, investments</text>
+    <rect class="box" x="26" y="168" width="168" height="62" rx="7"/><text class="t1" x="38" y="192">India pool · HSBC</text><text class="t2" x="38" y="210">INR stays onshore</text>
+    <rect class="box" x="26" y="262" width="168" height="62" rx="7"/><text class="t1" x="38" y="286">TSSC payment factory</text><text class="t2" x="38" y="304">All 15 entities' payments</text>
+    <rect class="boxy" x="271" y="62" width="218" height="110" rx="7"/><text class="tb" x="285" y="88">GRCTC (finance unit)</text><text class="tb2" x="285" y="108">In-house bank</text><text class="tb2" x="285" y="124">Intercompany loans and deposits</text><text class="tb2" x="285" y="140">FX hedging for overseas entities</text><text class="tb2" x="285" y="156">Monthly netting centre</text>
+    <rect class="box" x="271" y="200" width="218" height="60" rx="7"/><text class="t1" x="285" y="224">Foreign currency only</text><text class="t2" x="285" y="242">Outside the onshore INR pool</text>
+    <rect class="box" x="271" y="276" width="218" height="50" rx="7"/><text class="t2" x="285" y="298">Access to global banks and</text><text class="t2" x="285" y="313">capital markets from the IFSC</text>
+    <rect class="box" x="566" y="62" width="208" height="54" rx="7"/><text class="t1" x="578" y="84">Europe header · HSBC</text><text class="t2" x="578" y="102">EUR, GBP · 7 entities</text>
+    <rect class="box" x="566" y="128" width="208" height="54" rx="7"/><text class="t1" x="578" y="150">Americas header · Citi</text><text class="t2" x="578" y="168">USD, CAD · US, Canada</text>
+    <rect class="box" x="566" y="194" width="208" height="54" rx="7"/><text class="t1" x="578" y="216">MEA header · Citi Dubai</text><text class="t2" x="578" y="234">AED · UAE</text>
+    <rect class="box" x="566" y="260" width="208" height="66" rx="7" stroke-dasharray="5 4"/><text class="t1" x="578" y="282">In-country pools</text><text class="t2" x="578" y="300">BD, MX, BR, ZA · loans only</text><text class="t2" x="578" y="315">where local rules allow</text>
+    <path class="lny" d="M489 100 C528 100 528 89 564 89"/><path class="lny" d="M489 118 C528 118 528 155 564 155"/><path class="lny" d="M489 136 C528 136 528 221 564 221"/><path class="lnd" d="M489 152 C522 172 528 290 564 293"/>
+    <path class="lnd" d="M194 99 L269 108"/>
+    <path class="ln" d="M110 136 L110 166"/><path class="ln" d="M110 230 L110 260"/>
+   </svg>
+   <div class="legend-x"><span><span class="lkey" style="background:var(--accent-text)"></span> In-house bank loans / deposits</span><span><svg width="16" height="4" aria-hidden="true"><line x1="0" y1="2" x2="16" y2="2" stroke="var(--ink-3)" stroke-width="1.5" stroke-dasharray="4 3"/></svg> Dashed: capital and dividends under ODI / FEMA rules; loans only where local rules allow</span></div>
+  </div></div>
+  <div class="col-xl-5"><div class="cardx">
+   <div class="ch"><div><div class="ct">Why GIFT City, not only Mumbai</div><div class="cs">India-specific design choice</div></div></div>
+   <div class="guard"><i class="bi bi-globe"></i><div><div class="fw6">Offshore for regulatory purposes</div><div class="small2 ink2">An IFSC unit transacts in foreign currency, so overseas cash can be lent and pooled without routing through India's onshore exchange controls.</div></div></div>
+   <div class="guard"><i class="bi bi-bank2"></i><div><div class="fw6">A real in-house bank</div><div class="small2 ink2">Lends to deficit entities and takes deposits from surplus ones, replacing expensive local lines.</div></div></div>
+   <div class="guard"><i class="bi bi-arrow-left-right"></i><div><div class="fw6">One FX and netting hub</div><div class="small2 ink2">Monthly netting cuts cross-border payments and FX spread; forwards for overseas entities are dealt centrally.</div></div></div>
+   <div class="guard"><i class="bi bi-house-lock"></i><div><div class="fw6">INR stays onshore</div><div class="small2 ink2">GTC Mumbai keeps the INR pool and investments; nothing in this design moves INR offshore.</div></div></div>
+   <div class="small2 muted mt-2">Set-up: IFSCA application (Wave 1) → registered, first loans (Wave 2–3) → FX hedging hub (month 15).</div>
+  </div></div>
+ </div>
+ <div class="cardx">
+  <div class="ch"><div><div class="ct">In-house bank: loan and deposit book</div><div class="cs">Indicative rates · INR equivalent at indicative FX</div></div></div>
+  <div class="tscroll"><table class="tbl"><thead><tr><th>Position</th><th class="r">Amount</th><th class="r">INR cr</th><th>All-in rate</th><th>Benchmark</th><th>Replaces</th><th class="r">Saving / yr</th><th>Tax sign-off</th><th>Tenor</th></tr></thead><tbody>
+   <tr v-for="r in rows" :key="r.ent"><td class="fw6">{{r.dir}} {{entName(r.ent)}}</td><td class="r">{{r.ccy}} {{r.mn.toFixed(1)}} mn</td><td class="r">{{nf(r.cr,1)}}</td><td>{{r.rate}}</td><td class="small2">{{r.bench}}</td><td class="small2">{{r.replaces}}</td><td class="r">₹{{r.saving.toFixed(2)}} cr</td><td><s-chip :s="r.s" :text="r.tax"/></td><td class="small2">{{r.tenor}}</td></tr>
+  </tbody></table></div>
+ </div>
+</div>`,
+computed:{
+  rows(){ return IHB.filter(r=>this.role.regions.includes(regionOf(r.ent))); },
+  loans(){ return sum(this.rows.filter(r=>r.dir==='Loan to').map(r=>r.cr)); },
+  deps(){ return sum(this.rows.filter(r=>r.dir!=='Loan to').map(r=>r.cr)); },
+  saving(){ return sum(this.rows.map(r=>r.saving)); },
+} };
+
+/* ---------------- FEE AUDIT ---------------- */
+const FeesView = { mixins:[shared], components:{ SChip, ViewHead },
+template:`<div>
+ <view-head title="Automated bank fee audit" sub="Banks send camt.086 fee statements; the TMS reconciles every charge to the agreed tariff and flags the gap" q="Q · C"/>
+ <div class="row g-3 mb-3">
+  <div class="col-6 col-md-4 col-xl-2"><div class="cardx stat hl"><div class="lbl">Fees last quarter</div><div class="val">₹{{nf(billed,0)}}<small>lakh</small></div><div class="sub">run-rate ₹{{(billed*4/100).toFixed(1)}} cr / yr</div></div></div>
+  <div class="col-6 col-md-4 col-xl-2"><div class="cardx stat"><div class="lbl">vs ₹18 cr baseline</div><div class="val">−22.6%</div><div class="sub">target −30% by month 24</div></div></div>
+  <div class="col-6 col-md-4 col-xl-2"><div class="cardx stat"><div class="lbl">Fee lines audited</div><div class="val">{{nf(lines)}}</div><div class="sub">every line, every month</div></div></div>
+  <div class="col-6 col-md-4 col-xl-2"><div class="cardx stat"><div class="lbl">Exceptions</div><div class="val">{{excN}}</div><div class="sub">charges above tariff</div></div></div>
+  <div class="col-6 col-md-4 col-xl-2"><div class="cardx stat"><div class="lbl">Overbilled</div><div class="val">₹{{over.toFixed(1)}}<small>lakh</small></div><div class="sub">{{pct(100-over/auditedBilled*100)}} of audited fees in tariff</div></div></div>
+  <div class="col-6 col-md-4 col-xl-2"><div class="cardx stat"><div class="lbl">Recovered YTD</div><div class="val">₹31<small>lakh</small></div><div class="sub">₹42 lakh claimed</div></div></div>
+ </div>
+ <div class="cardx mb-3">
+  <div class="ch"><div><div class="ct">How the audit runs</div><div class="cs">camt.086 is a pass/fail requirement in the bank RFP, so the 5-bank tariff is enforced, not just negotiated</div></div></div>
+  <div class="steps">
+   <div class="step"><div class="n">1 · RFP</div><div class="h">Tariff agreed</div><div class="d">Unit prices per service code signed with each panel bank</div></div>
+   <div class="step"><div class="n">2 · BANK</div><div class="h">camt.086 sent</div><div class="d">Monthly statement itemised down to each transaction</div></div>
+   <div class="step"><div class="n">3 · TMS</div><div class="h">Lines matched</div><div class="d">Each charge mapped to its tariff line and volume</div></div>
+   <div class="step"><div class="n">4 · RULES</div><div class="h">Gaps flagged</div><div class="d">Price, volume, closed-account and duplicate checks</div></div>
+   <div class="step"><div class="n">5 · TSSC</div><div class="h">Claim raised</div><div class="d">Credit note tracked to closure on the Control Tower</div></div>
+  </div>
+ </div>
+ <div class="row g-3 mb-3">
+  <div class="col-xl-8"><div class="cardx">
+   <div class="ch"><div><div class="ct">By bank, last quarter (INR lakh)</div><div class="cs">Legacy banks send PDF invoices, so they are checked by hand</div></div></div>
+   <div class="tscroll"><table class="tbl"><thead><tr><th>Bank</th><th>camt.086</th><th class="r">Billed</th><th class="r">Lines</th><th class="r">Exceptions</th><th class="r">Over tariff</th><th class="r">In tariff</th></tr></thead><tbody>
+    <tr v-for="b in fb" :key="b.bank"><td class="fw6 nw"><span class="dot" :style="{background:bcol(b.bank)}"></span> {{b.bank==='Legacy'?'Legacy banks':bankName(b.bank)}}</td><td><s-chip :s="b.camt==='Live'?'good':b.camt.startsWith('Go-live')?'warn':'neutral'" :text="b.camt"/><div class="small2 muted">{{b.freq}}</div></td><td class="r">{{b.billed.toFixed(1)}}</td><td class="r">{{b.lines?nf(b.lines):'—'}}</td><td class="r">{{b.exc||'—'}}</td><td class="r fw6">{{b.over==null?'n/a':b.over.toFixed(1)}}</td><td class="r"><span v-if="b.over!=null" class="fw6">{{(100-b.over/b.billed*100).toFixed(1)}}%</span><span v-else class="small2 muted">manual</span></td></tr>
+   </tbody></table></div>
+  </div></div>
+  <div class="col-xl-4"><div class="cardx">
+   <div class="ch"><div><div class="ct">Overbilling by type</div><div class="cs">Top exceptions, INR lakh</div></div></div>
+   <div v-for="t in byType" :key="t.k" class="mb-2"><div class="d-flex justify-content-between small2"><span>{{t.k}}</span><b class="tnum">₹{{t.v.toFixed(2)}} L</b></div><div class="hbar mt-1"><div class="t"><div class="f" :style="{width:t.v/maxType*100+'%', background:'var(--s2)'}"></div></div></div></div>
+  </div></div>
+ </div>
+ <div class="cardx">
+  <div class="ch"><div><div class="ct">Exceptions to action</div><div class="cs">Raise a claim and the TSSC tracks the credit note</div></div></div>
+  <div class="tscroll"><table class="tbl"><thead><tr><th>ID</th><th>Bank · entity</th><th>Charge</th><th>Volume</th><th>Billed</th><th>Tariff</th><th class="r">Over (₹ L)</th><th>Status</th><th></th></tr></thead><tbody>
+   <tr v-for="f in exc" :key="f.id"><td class="fw6 tnum nw">{{f.id}}</td><td class="small2">{{bankName(f.bank)}}<div class="muted">{{entName(f.ent)}}</div></td><td class="small2">{{f.svc}}</td><td class="small2">{{f.vol}}</td><td class="small2">{{f.billed}}</td><td class="small2">{{f.tariff}}</td><td class="r fw6">{{f.over.toFixed(2)}}</td><td><s-chip :s="st(f)==='Credited'?'good':st(f)==='Claim raised'?'info':'warn'" :text="st(f)"/></td><td><button class="btnx sm" v-if="st(f)==='Open'" @click="claim(f)">Raise claim</button></td></tr>
+  </tbody></table></div>
+ </div>
+</div>`,
+computed:{
+  fb:()=>FEE_BANKS,
+  billed:()=>sum(FEE_BANKS.map(b=>b.billed)), lines:()=>sum(FEE_BANKS.map(b=>b.lines)), excN:()=>sum(FEE_BANKS.map(b=>b.exc)),
+  over:()=>sum(FEE_BANKS.map(b=>b.over||0)), auditedBilled:()=>sum(FEE_BANKS.filter(b=>b.over!=null).map(b=>b.billed)),
+  exc(){ return FEE_EXC.filter(f=>this.role.regions.includes(regionOf(f.ent))); },
+  byType(){ const m={ 'Wrong rate or price':0, 'Closed account or waived fee billed':0, 'Duplicate billing':0, 'FX margin above agreed spread':0 };
+    FEE_EXC.forEach(f=>{ const k = /margin/.test(f.svc)?'FX margin above agreed spread': /twice|duplicate/i.test(f.svc)?'Duplicate billing': /closed|waiver|courier/.test(f.svc)?'Closed account or waived fee billed':'Wrong rate or price'; m[k]+=f.over; });
+    return Object.entries(m).map(([k,v])=>({k,v})).sort((a,b)=>b.v-a.v); },
+  maxType(){ return Math.max(...this.byType.map(t=>t.v)); },
+},
+methods:{ st(f){ return store.feeClaims[f.id] || f.status; }, claim(f){ store.feeClaims[f.id]='Claim raised'; logAudit('Raised fee claim '+f.id, bankName(f.bank)+' · '+entName(f.ent)+' · ₹'+f.over.toFixed(2)+' lakh'); toast('good','Claim raised', f.id+' sent to '+bankName(f.bank)+'.'); } } };
+
+/* ---------------- COPILOT ---------------- */
+const SUGGESTIONS = ["What's our EUR exposure to HSBC today?", 'Where is idle cash above threshold?', 'Are we within all counterparty limits?', 'What does week 9 look like?', 'How long does cash last if HSBC fails?', 'Which payments are at risk of missing cut-off?', 'BRL hedge status', 'Show the bank fee exceptions', "What's Brazil's cash position?"];
+const CopilotView = { mixins:[shared], components:{ SChip, ViewHead },
+watch:{ 'store.copilotPending'(q){ if(q){ store.copilotPending=null; this.ask(q); } } },
+mounted(){ if(!store.chat.length) store.chat.push({ who:'b', text:'Hello. I answer read-only questions on the Control Tower data for your role ('+roleObj.value.label+'). I never move money or change limits; anything I propose needs a human to approve it.', src:'Treasury Copilot' }); if(store.copilotPending){ const q=store.copilotPending; store.copilotPending=null; this.ask(q); } this.scroll(); },
+template:`<div>
+ <view-head title="Treasury Copilot" sub="A GenAI layer on the Control Tower: plain-language answers, a daily liquidity commentary, and reconciliation matches for humans to approve" q="Q · G"/>
+ <div class="row g-3 mb-3">
+  <div class="col-xl-7"><div class="cardx">
+   <div class="ch"><div><div class="ct">Ask the Control Tower</div><div class="cs">Answers are scoped to {{role.label}} · every question is logged</div></div><s-chip s="info" text="Read-only"/></div>
+   <div class="chat">
+    <div class="chat-log" ref="log">
+     <div v-for="(m,i) in store.chat" :key="i" class="msg" :class="[m.who, {blocked:m.blocked}]">{{m.text}}<div class="src" v-if="m.src"><i class="bi" :class="m.blocked?'bi-shield-lock':'bi-link-45deg'"></i> {{m.src}}</div></div>
+     <div v-if="thinking" class="msg b typing"><span></span><span></span><span></span></div>
+    </div>
+    <div class="sugg"><button v-for="s in sugg" :key="s" @click="ask(s)">{{s}}</button></div>
+    <form class="chat-in" @submit.prevent="ask(q)"><input v-model="q" placeholder="Ask about balances, limits, forecast, FX, payments, fees…" aria-label="Ask Treasury Copilot"><button class="btnx brand" type="submit"><i class="bi bi-send"></i></button></form>
+   </div>
+  </div></div>
+  <div class="col-xl-5">
+   <div class="cardx mb-3" style="height:auto">
+    <div class="ch"><div><div class="ct">Daily liquidity commentary</div><div class="cs">Generated {{genAt}} IST from today's data</div></div><s-chip :s="store.commentaryState==='draft'?'warn':'good'" :text="store.commentaryState==='draft'?'Draft · needs sign-off':'Approved'"/></div>
+    <div class="comm"><p v-for="p in comm" :key="p.h"><b>{{p.h}}.</b> {{p.t}}</p></div>
+    <button class="btnx brand sm" v-if="store.commentaryState==='draft'" :disabled="!(role.id==='gt'||role.id==='cfo')" @click="approve">Approve and publish</button>
+    <span class="small2 muted ms-2" v-if="store.commentaryState==='draft' && !(role.id==='gt'||role.id==='cfo')">Group Treasurer signs off</span>
+   </div>
+   <div class="cardx" style="height:auto">
+    <div class="ct mb-2">Guardrails</div>
+    <div class="guard"><i class="bi bi-eye"></i><div><div class="fw6">Read-only access</div><div class="small2 ink2">The Copilot reads Control Tower data; it cannot release payments, move cash or edit limits.</div></div></div>
+    <div class="guard"><i class="bi bi-person-check"></i><div><div class="fw6">Human approval for every proposal</div><div class="small2 ink2">Matches, sweeps and the commentary wait for a named person.</div></div></div>
+    <div class="guard"><i class="bi bi-person-lock"></i><div><div class="fw6">Role-scoped answers</div><div class="small2 ink2">A regional desk only gets answers about its own region. Try switching role.</div></div></div>
+    <div class="guard"><i class="bi bi-journal-text"></i><div><div class="fw6">Full audit log</div><div class="small2 ink2">Every question, proposal and approval is recorded below.</div></div></div>
+   </div>
+  </div>
+ </div>
+ <div class="row g-3">
+  <div class="col-xl-7"><div class="cardx">
+   <div class="ch"><div><div class="ct">Reconciliation agent</div><div class="cs">Proposed matches for unmatched statement lines · shared-service staff approve</div></div><span class="small2 muted">{{pendingN}} awaiting review</span></div>
+   <div class="tscroll"><table class="tbl"><thead><tr><th>Statement line</th><th>Proposed match</th><th class="r">Confidence</th><th></th></tr></thead><tbody>
+    <tr v-for="r in store.recon" :key="r.id"><td class="small2"><b class="tnum">{{r.id}}</b> · {{r.bank}}<div>{{r.side}} {{r.amt}}</div><div class="muted">{{r.narr}}</div></td>
+     <td class="small2">{{r.match}}<div class="muted">{{r.why}}</div></td>
+     <td class="r"><s-chip :s="r.conf>=90?'good':r.conf>=75?'warn':'serious'" :text="r.conf+'%'"/></td>
+     <td style="white-space:nowrap"><template v-if="r.st==='pending'"><button class="btnx sm brand me-1" :disabled="!canRecon" @click="decide(r,'approved')">Approve</button><button class="btnx sm" :disabled="!canRecon" @click="decide(r,'rejected')">Reject</button></template><s-chip v-else :s="r.st==='approved'?'good':'neutral'" :text="r.st==='approved'?'Approved':'Rejected'"/></td></tr>
+   </tbody></table></div>
+   <div class="small2 muted mt-2" v-if="!canRecon">Approvals sit with TSSC staff, the Group Treasurer or the CFO.</div>
+  </div></div>
+  <div class="col-xl-5"><div class="cardx">
+   <div class="ch"><div><div class="ct">Audit log</div><div class="cs">Most recent first</div></div></div>
+   <div style="max-height:360px;overflow-y:auto"><table class="tbl"><tbody><tr v-for="(a,i) in store.audit" :key="i"><td class="small2 tnum muted" style="width:46px">{{a.t}}</td><td class="small2"><b>{{a.who}}</b> · {{a.act}}<div class="muted">{{a.det}}</div></td></tr></tbody></table></div>
+  </div></div>
+ </div>
+</div>`,
+data(){ return { q:'', thinking:false } },
+computed:{
+  sugg(){ return SUGGESTIONS; },
+  comm(){ return commentaryParas(); },
+  genAt(){ return '16:02'; },
+  pendingN(){ return store.recon.filter(r=>r.st==='pending').length; },
+  canRecon(){ return ['tssc','gt','cfo'].includes(this.role.id); },
+},
+methods:{
+  scroll(){ nextTick(()=>{ const el=this.$refs.log; if(el) el.scrollTop=el.scrollHeight; }); },
+  ask(q){ q=(q||'').trim(); if(!q || this.thinking) return; store.chat.push({ who:'u', text:q }); this.q=''; this.thinking=true; this.scroll();
+    setTimeout(()=>{ const a=copilotAnswer(q); store.chat.push({ who:'b', text:a.text, src:a.src, blocked:a.blocked }); logAudit(a.blocked?'Copilot declined question (out of scope)':'Copilot answered question (read-only)', '"'+q+'"', roleObj.value.label+' → Copilot'); this.thinking=false; this.scroll(); }, 650); },
+  decide(r, st){ r.st=st; logAudit((st==='approved'?'Approved':'Rejected')+' reconciliation match '+r.id, r.bank+' · '+r.amt+' → '+r.match); },
+  approve(){ store.commentaryState='approved'; store.commentaryApprovedAt=nowStr(); logAudit('Approved and published daily liquidity commentary','Drafted by Treasury Copilot'); toast('good','Commentary published','Approved by '+roleObj.value.label+'.'); },
+} };
+
+/* ---------------- PLAYBOOK ---------------- */
+const PlaybookView = { mixins:[shared], components:{ SChip, ViewHead },
+template:`<div>
+ <view-head title="Treasury-in-a-box" sub="The answer to the root cause: every new acquisition is brought into group treasury in 90 days, without adding banks" q="Q · G"/>
+ <div class="row g-3 mb-3">
+  <div class="col-lg-4" v-for="(ph,pi) in PB" :key="ph.day">
+   <div class="cardx phase">
+    <div class="phase-h" :class="'ph'+(pi+1)"><span class="d">{{ph.label}}</span><span style="font-weight:500;font-size:13px">{{ph.title}}</span></div>
+    <div class="ck" v-for="(it,ii) in ph.items" :key="ii"><i class="bi ic" :class="icon(itemState(pi,ii,it))" :style="{color:col(itemState(pi,ii,it))}"></i><div class="tx">{{it.t}}<div class="ow">{{it.o}} · {{it.sys}}</div></div></div>
+    <div class="mt-2"><div class="d-flex justify-content-between small2"><span class="muted">Savanna Home Care progress</span><b>{{done(pi)}} / {{ph.items.length}}</b></div><div class="hbar mt-1"><div class="t"><div class="f" :style="{width:done(pi)/ph.items.length*100+'%', background:'var(--s1)'}"></div></div></div></div>
+   </div>
+  </div>
+ </div>
+ <div class="row g-3">
+  <div class="col-xl-8"><div class="cardx">
+   <div class="ch"><div><div class="ct">Live tracker · Savanna Home Care Ltd, Kenya (acquired)</div><div class="cs">Illustrative new acquisition, owned by the MEA desk · drag the day to replay the playbook</div></div><s-chip :s="overdue?'warn':'good'" :text="overdue? overdue+' item overdue' : 'On plan'"/></div>
+   <div class="d-flex align-items-center gap-3 mb-3"><span class="small2 muted" style="white-space:nowrap">Day</span><input type="range" min="0" max="100" v-model.number="store.playDay" aria-label="Day since acquisition"><span class="fw7 tnum" style="font-size:20px;min-width:70px">Day {{store.playDay}}</span></div>
+   <div class="tscroll"><table class="tbl"><thead><tr><th>Step</th><th>Owner</th><th>Due</th><th>Status</th></tr></thead><tbody>
+    <template v-for="(ph,pi) in PB" :key="'p'+pi"><tr v-for="(it,ii) in ph.items" :key="pi+'-'+ii"><td class="small2">{{it.t}}</td><td class="small2 muted">{{it.o}}</td><td class="small2">{{ph.label}}</td><td><s-chip :s="chipS(itemState(pi,ii,it))" :text="label(itemState(pi,ii,it), it)"/></td></tr></template>
+   </tbody></table></div>
+  </div></div>
+  <div class="col-xl-4">
+   <div class="cardx mb-3" style="height:auto">
+    <div class="ct mb-2">Banks: mapped to the panel</div>
+    <div class="small2 ink2 mb-2">4 local banks and 11 accounts at acquisition. Three panel banks already operate in Kenya, so <b>no bank is added to the panel</b>.</div>
+    <table class="tbl"><tbody>
+     <tr><td>Standard Chartered</td><td><s-chip s="good" text="Panel · operating account"/></td></tr>
+     <tr><td>Standard Bank (Stanbic)</td><td><s-chip s="good" text="Panel · collections"/></td></tr>
+     <tr><td>Citi</td><td><s-chip s="good" text="Panel · USD account"/></td></tr>
+     <tr><td>4 local banks</td><td><s-chip :s="store.playDay>=96?'good':'warn'" :text="store.playDay>=96?'Closed':'Close after 2 clean months'"/></td></tr>
+    </tbody></table>
+    <div class="d-flex justify-content-between small2 mt-2"><span class="muted">Accounts</span><b>{{store.playDay>=96?3:store.playDay>=24?'11 → 3 mapped':11}}</b></div>
+   </div>
+   <div class="cardx" style="height:auto">
+    <div class="ct mb-2">Without vs with the playbook</div>
+    <table class="tbl"><thead><tr><th></th><th>Before</th><th>With</th></tr></thead><tbody>
+     <tr><td class="small2">New banks</td><td class="small2">+3 to +4</td><td class="small2 fw6">0</td></tr>
+     <tr><td class="small2">Sanctions screening</td><td class="small2">Whenever</td><td class="small2 fw6">Day 1</td></tr>
+     <tr><td class="small2">Cash visible to group</td><td class="small2">Never integrated</td><td class="small2 fw6">Day 5</td></tr>
+     <tr><td class="small2">In the pool, on the TSSC</td><td class="small2">—</td><td class="small2 fw6">Day 90</td></tr>
+    </tbody></table>
+   </div>
+  </div>
+ </div>
+</div>`,
+computed:{ PB:()=>PLAYBOOK,
+  overdue(){ let n=0; PLAYBOOK.forEach((ph,pi)=>ph.items.forEach((it,ii)=>{ if(this.itemState(pi,ii,it)==='overdue') n++; })); return n; } },
+methods:{
+  itemState(pi,ii,it){ const d=store.playDay; if(it.done<=d) return 'done'; if(PLAYBOOK[pi].day<d) return 'overdue'; return 'todo'; },
+  done(pi){ return PLAYBOOK[pi].items.filter((it,ii)=>this.itemState(pi,ii,it)==='done').length; },
+  icon(s){ return s==='done'?'bi-check-circle-fill':s==='overdue'?'bi-exclamation-triangle-fill':'bi-circle'; },
+  col(s){ return s==='done'?'var(--good)':s==='overdue'?'var(--warn)':'var(--ink-3)'; },
+  chipS(s){ return s==='done'?'good':s==='overdue'?'warn':'neutral'; },
+  label(s,it){ return s==='done'?'Done day '+it.done:s==='overdue'?'Overdue':'Planned'; },
+} };
+
+/* ---------------- STRESS ---------------- */
+const StressView = { mixins:[shared], components:{ VChart, SChip, ViewHead },
+data(){ return { bankOn:true, bank:'HSBC', fxOn:false, fx:10, hedge:true, delayOn:false, days:30, share:100, deferDiv:false, deferCapex:false } },
+template:`<div>
+ <view-head title="Liquidity stress test" sub="How long GCPL's cash lasts if a panel bank fails, FX moves 10% or customers pay 30 days late, over 26 weeks" q="Risks"/>
+ <div class="filters"><label>Presets</label>
+  <button class="btnx sm" @click="preset('bank')">Panel bank fails</button><button class="btnx sm" @click="preset('fx')">10% FX shock</button><button class="btnx sm" @click="preset('delay')">Receipts +30 days</button><button class="btnx sm brand" @click="preset('all')">All three</button><button class="btnx sm" @click="preset('none')">Clear</button></div>
+ <div class="row g-3 mb-3">
+  <div class="col-md-4"><div class="cardx">
+   <label class="sw fw6 mb-2"><input type="checkbox" v-model="bankOn"><span class="tr"></span>Panel bank fails</label>
+   <div class="small2 ink2 mb-2">Deposits frozen for the horizon; that bank's share of the committed lines is lost.</div>
+   <select class="sel w-100" v-model="bank" :disabled="!bankOn"><option v-for="b in banks" :key="b.id" :value="b.id">{{b.name}} · {{cr(b.amount)}} deposits</option></select>
+  </div></div>
+  <div class="col-md-4"><div class="cardx">
+   <label class="sw fw6 mb-2"><input type="checkbox" v-model="fxOn"><span class="tr"></span>FX shock</label>
+   <div class="small2 ink2 mb-1">Adverse move of <b>{{fx}}%</b> on overseas cash and on unhedged flows.</div>
+   <div class="d-flex align-items-center gap-2"><span class="small2 muted" style="width:86px">Size</span><input type="range" min="5" max="20" step="1" v-model.number="fx" :disabled="!fxOn" aria-label="FX shock size"></div>
+   <label class="sw small2 mt-1"><input type="checkbox" v-model="hedge" :disabled="!fxOn"><span class="tr"></span>Apply the hedge book</label>
+  </div></div>
+  <div class="col-md-4"><div class="cardx">
+   <label class="sw fw6 mb-2"><input type="checkbox" v-model="delayOn"><span class="tr"></span>Customer receipts slip</label>
+   <div class="small2 ink2 mb-1">Customers pay <b>{{days}} days</b> late on <b>{{share}}%</b> of receipts.</div>
+   <div class="d-flex align-items-center gap-2"><span class="small2 muted" style="width:86px">Days late</span><input type="range" min="15" max="60" step="5" v-model.number="days" :disabled="!delayOn" aria-label="Days of delay"></div>
+   <div class="d-flex align-items-center gap-2"><span class="small2 muted" style="width:86px">Share</span><input type="range" min="25" max="100" step="5" v-model.number="share" :disabled="!delayOn" aria-label="Share of receipts delayed"></div>
+  </div></div>
+ </div>
+ <div class="row g-3 mb-3">
+  <div class="col-6 col-xl-3"><div class="cardx stat dark-card"><div class="lbl" style="color:#a9a8a0">Cash lasts</div><div class="val" style="color:#ffe600">{{lastsTxt}}</div><div class="sub" style="color:#c3c2b7">{{S.out0 ? 'before cash hits zero (no lines drawn)' : 'cash stays positive across the horizon'}}</div></div></div>
+  <div class="col-6 col-xl-3"><div class="cardx stat"><div class="lbl">Below ₹{{MIN}} cr minimum from</div><div class="val">{{S.belowMin?'Week '+S.belowMin:'Never'}}</div><div class="sub"><s-chip :s="S.belowMin? (S.belowMin<=4?'crit':'warn') : 'good'" :text="S.belowMin?'Breach':'Within policy'"/></div></div></div>
+  <div class="col-6 col-xl-3"><div class="cardx stat"><div class="lbl">With undrawn lines (₹{{S.rcf}} cr)</div><div class="val">{{S.outLiq?'Week '+S.outLiq:'26+ weeks'}}</div><div class="sub">{{S.outLiq?'liquidity runs out':'lines cover the gap'}}</div></div></div>
+  <div class="col-6 col-xl-3"><div class="cardx stat"><div class="lbl">Lowest cash</div><div class="val">{{cr(S.low)}}</div><div class="sub">week {{S.lowW}} · base case {{cr(B.low)}}</div></div></div>
+ </div>
+ <div class="row g-3 mb-3">
+  <div class="col-xl-8"><div class="cardx">
+   <div class="ch"><div><div class="ct">Cash over 26 weeks: base vs stressed (INR cr)</div><div class="cs">{{activeText}}</div></div>
+    <div class="d-flex gap-3 flex-wrap"><label class="sw small2"><input type="checkbox" v-model="deferDiv"><span class="tr"></span>Defer interim dividend</label><label class="sw small2"><input type="checkbox" v-model="deferCapex"><span class="tr"></span>Defer 50% of capex</label></div></div>
+   <v-chart :config="cfg" :height="320" label="Base and stressed cash"/>
+  </div></div>
+  <div class="col-xl-4"><div class="cardx">
+   <div class="ct mb-2">If it happens: the playbook</div>
+   <div class="guard"><i class="bi bi-1-circle"></i><div class="small2"><b>Draw the committed lines</b> · ₹{{S.rcf}} cr available{{bankOn && bankRcf ? ' (₹'+bankRcf+' cr lost with '+bankName(bank)+')' : ''}}</div></div>
+   <div class="guard"><i class="bi bi-2-circle"></i><div class="small2"><b>Defer the interim dividend</b> · ₹364 cr in week 9</div></div>
+   <div class="guard"><i class="bi bi-3-circle"></i><div class="small2"><b>Pull surplus through the GRCTC in-house bank</b> from the Europe and Americas headers</div></div>
+   <div class="guard"><i class="bi bi-4-circle"></i><div class="small2"><b>Redeem AAA funds</b> · ₹180 cr, same or next day</div></div>
+   <div class="guard"><i class="bi bi-5-circle"></i><div class="small2"><b>Defer discretionary capex</b> · ≈ ₹6 cr a week</div></div>
+   <div class="small2 muted mt-2">Why the 35% / 15% deposit caps matter: a failure at the largest bank freezes {{cr(cpHSBC)}}, not the majority of group cash.</div>
+  </div></div>
+ </div>
+ <div class="cardx">
+  <div class="ch"><div><div class="ct">Scenario comparison</div><div class="cs">Each stress alone and combined, with the mitigation toggles above · table view of the chart</div></div></div>
+  <div class="tscroll"><table class="tbl"><thead><tr><th>Scenario</th><th class="r">Lowest cash</th><th>Below minimum from</th><th>Cash runs out</th><th>With undrawn lines</th><th class="r">Impact</th></tr></thead><tbody>
+   <tr v-for="r in table" :key="r.k"><td class="fw6">{{r.k}}</td><td class="r">{{cr(r.r.low)}} <span class="small2 muted">W{{r.r.lowW}}</span></td><td><s-chip :s="r.r.belowMin?'warn':'good'" :text="r.r.belowMin?'Week '+r.r.belowMin:'Never'"/></td><td><s-chip :s="r.r.out0?'crit':'good'" :text="r.r.out0?'Week '+r.r.out0:'Lasts 26+ weeks'"/></td><td><s-chip :s="r.r.outLiq?'crit':'good'" :text="r.r.outLiq?'Week '+r.r.outLiq:'26+ weeks'"/></td><td class="r small2">{{r.impact}}</td></tr>
+  </tbody></table></div>
+  <div class="small2 muted mt-2">Simplified model on the illustrative 26-week flows: receipts, payments, payroll, advance tax (weeks 9 and 21), interim dividend (week 9), capex and debt service. FX shock hits overseas cash once and unhedged flows weekly.</div>
+ </div>
+</div>`,
+computed:{
+  MIN:()=>MIN_CASH, cpHSBC:()=>cpOf('HSBC').amount,
+  banks(){ return BANKS.filter(b=>!b.runoff).map(b=>({ ...b, amount:bankTotal(b.id) })); },
+  bankRcf(){ return (BANKS.find(b=>b.id===this.bank)||{}).rcf||0; },
+  opts(){ return { bank:this.bankOn?this.bank:null, fx:this.fxOn?this.fx:0, hedge:this.hedge, days:this.delayOn?this.days:0, share:this.share/100, deferDiv:this.deferDiv, deferCapex:this.deferCapex }; },
+  S(){ return runStress(this.opts); },
+  B(){ return runStress({}); },
+  lastsTxt(){ return this.S.out0 ? (this.S.out0-1)+' weeks' : '26+ weeks'; },
+  activeText(){ const a=[]; if(this.bankOn) a.push(bankName(this.bank)+' fails'); if(this.fxOn) a.push(this.fx+'% FX shock'+(this.hedge?'':' (no hedges)')); if(this.delayOn) a.push('receipts +'+this.days+' days on '+this.share+'%'); if(this.deferDiv) a.push('dividend deferred'); if(this.deferCapex) a.push('capex halved'); return a.length ? 'Stressed: '+a.join(' · ') : 'No stress selected: stressed line equals the base case'; },
+  table(){ const m={ deferDiv:this.deferDiv, deferCapex:this.deferCapex }; const b=this.bank;
+    const rows=[ ['Base case', {}, '—'], [bankName(b)+' fails', { bank:b }, cr(bankTotal(b))+' frozen'], [this.fx+'% FX shock', { fx:this.fx, hedge:this.hedge }, null], ['Receipts +'+this.days+' days ('+this.share+'%)', { days:this.days, share:this.share/100 }, null], ['All three', { bank:b, fx:this.fx, hedge:this.hedge, days:this.days, share:this.share/100 }, null] ];
+    return rows.map(([k,o,imp])=>{ const r=runStress({ ...o, ...m }); return { k, r, impact: imp || (o.fx&&!o.days&&!o.bank ? cr(r.fxHit)+' FX hit' : o.days&&!o.bank ? cr(r.recLost)+' receipts delayed' : o.bank ? cr(bankTotal(b))+' frozen, '+cr(r.fxHit)+' FX, '+cr(r.recLost)+' late' : '—') }; }); },
+  cfg(){ const P=this.P, S=this.S, B=this.B; const labels=['Now', ...Array.from({length:26},(_,i)=>'W'+(i+1))];
+    const start = GROUP_CASH - (S.frozen||0);
+    return markRaw({ type:'line', data:{ labels, datasets:[
+      { label:'Base case', data:[GROUP_CASH, ...B.series], borderColor:P.s1, backgroundColor:P.s1, borderWidth:2, pointRadius:0, pointHoverRadius:4, tension:.2 },
+      { label:'Stressed', data:[start, ...S.series], borderColor:P.s2, backgroundColor:P.s2, borderWidth:2, pointRadius:0, pointHoverRadius:4, tension:.2 },
+      { label:'Stressed + undrawn lines', data:[start+S.rcf, ...S.liq], borderColor:P.s2, backgroundColor:P.s2, borderDash:[6,4], borderWidth:1.5, pointRadius:0, pointHoverRadius:3, tension:.2 },
+      { label:'Minimum cash', data:Array(27).fill(MIN_CASH), borderColor:P.crit, backgroundColor:P.crit, borderWidth:1.5, pointRadius:0, pointHitRadius:0 },
+      { label:'_zero', data:Array(27).fill(0), borderColor:P.axis, borderWidth:1, pointRadius:0, pointHitRadius:0 },
+    ]}, options:{ responsive:true, maintainAspectRatio:false, animation:{duration:200}, interaction:{mode:'index', intersect:false},
+      plugins:{ legend:legendOpts(P), crosshair:{on:true, color:P.axis}, tooltip:tipOpts(P,{ filter:it=>!it.dataset.label.startsWith('_'), callbacks:{ label:it=>' '+it.dataset.label+': ₹'+nf(it.raw)+' cr', footer:items=>{ const i=items[0].dataIndex; return RUN.events[i] || (i===21?'Advance tax ₹190 cr':''); } } }) },
+      scales: Object.assign(scalesXY(P, { suggestedMin:-200, suggestedMax:2100, ticks:{ color:P.ink3, callback:v=>(v<0?'−₹':'₹')+nf(Math.abs(v)) } }), { x:{ grid:{display:false}, border:{color:P.axis}, ticks:{ color:P.ink3, maxRotation:0, autoSkip:true, autoSkipPadding:8 } } }) } }); },
+},
+methods:{ preset(k){ this.bankOn = k==='bank'||k==='all'; this.fxOn = k==='fx'||k==='all'; this.delayOn = k==='delay'||k==='all'; if(k==='bank'||k==='all') this.bank='HSBC'; if(k==='fx'||k==='all'){ this.fx=10; this.hedge=true; } if(k==='delay'||k==='all'){ this.days=30; this.share=100; } } } };
+
+/* ---------------- ALERTS DRAWER ---------------- */
+const AlertsDrawer = { mixins:[shared], components:{ SChip }, emits:['close'],
+data(){ return { tab:'open' } },
+template:`<div>
+ <div class="dback" @click="$emit('close')"></div>
+ <aside class="drawer" role="dialog" aria-label="Alerts">
+  <div class="drawer-h">
+   <div class="d-flex justify-content-between align-items-center"><div class="fw7" style="font-size:16px"><i class="bi bi-bell"></i> Alerts</div><button class="btn-icon" @click="$emit('close')" aria-label="Close"><i class="bi bi-x-lg"></i></button></div>
+   <div class="small2 muted mt-1">Automatic rules run on every data refresh · scoped to {{role.label}}</div>
+   <div class="seg mt-2"><button :class="{on:tab==='open'}" @click="tab='open'">Open ({{open.length}})</button><button :class="{on:tab==='ack'}" @click="tab='ack'">Acknowledged ({{acked.length}})</button><button :class="{on:tab==='rules'}" @click="tab='rules'">Rules</button></div>
+  </div>
+  <div class="drawer-b">
+   <template v-if="tab!=='rules'">
+    <div v-if="!list.length" class="small2 muted p-3">Nothing here.</div>
+    <div v-for="a in list" :key="a.id" class="al" :class="a.sev">
+     <div class="d-flex justify-content-between gap-2"><s-chip :s="a.sev" :text="a.cat"/><span class="small2 muted">{{a.time}}{{a.sim?' · live':''}}</span></div>
+     <div class="at">{{a.title}}</div><div class="ad">{{a.detail}}</div>
+     <div class="aa"><b>Action:</b> {{a.action}}</div>
+     <div class="d-flex justify-content-between align-items-center mt-2"><span class="small2 muted">Owner: {{a.owner}}</span>
+      <span><button class="btnx sm me-1" @click="go(a.view); $emit('close')">View</button><button class="btnx sm" v-if="!store.ack[a.id]" @click="ack(a)">Acknowledge</button><span v-else class="small2 muted">Ack {{store.ack[a.id]}}</span></span></div>
+    </div>
+   </template>
+   <template v-else>
+    <div class="cardx mb-3" style="height:auto">
+     <div class="fw6 mb-2">Thresholds</div>
+     <div class="d-flex justify-content-between align-items-center mb-2"><span class="small2">Idle cash above buffer (INR cr)</span><input class="num" type="number" min="0" max="100" v-model.number="store.th.idle"></div>
+     <div class="d-flex justify-content-between align-items-center mb-2"><span class="small2">Forecast miss (%)</span><input class="num" type="number" min="1" max="50" v-model.number="store.th.miss"></div>
+     <div class="d-flex justify-content-between align-items-center"><span class="small2">Warn at % of counterparty cap</span><input class="num" type="number" min="50" max="100" v-model.number="store.th.limitWarn"></div>
+     <div class="small2 muted mt-2">Limit breaches always raise a critical alert and reach the Group Treasurer within 24 hours.</div>
+    </div>
+    <div class="cardx" style="height:auto">
+     <div class="fw6 mb-1">Demo: live event</div>
+     <div class="small2 ink2 mb-2">Pushes the next intraday event through the rules (limit move, receipts miss, sanctions hold).</div>
+     <button class="btnx brand" @click="sim">Simulate intraday event</button>
+    </div>
+   </template>
+  </div>
+ </aside>
+</div>`,
+computed:{ open(){ return OPEN_ALERTS.value; }, acked(){ return VISIBLE_ALERTS.value.filter(a=>store.ack[a.id]); }, list(){ const o={crit:0,warn:1,info:2}; return (this.tab==='open'?this.open:this.acked).slice().sort((a,b)=>o[a.sev]-o[b.sev]); } },
+methods:{ ack(a){ store.ack[a.id]=nowStr(); logAudit('Acknowledged alert', a.title); }, sim(){ simulateEvent(); this.tab='open'; } } };
+
+/* =====================================================================
+   ROOT
+   ===================================================================== */
+const app = createApp({
+  components:{ OverviewView, CashMapView, RunwayView, CounterpartyView, FxView, PaymentsView, KpiView, GiftView, FeesView, CopilotView, PlaybookView, StressView, AlertsDrawer },
+  data(){ return { navOpen:false, alertsOpen:false, quickQ:'' } },
+  template:`
+  <div class="topband"></div>
+  <div class="shell">
+   <div class="nav-backdrop d-lg-none" v-if="navOpen" @click="navOpen=false"></div>
+   <aside class="side" :class="{open:navOpen}" aria-label="Main navigation">
+    <div class="brand"><div class="logo">GCPL</div><div><div class="b1">Treasury Control Tower</div><div class="b2">Simulated data · programme month 18</div></div></div>
+    <div class="nav-sec">Control Tower</div>
+    <button v-for="v in views.filter(x=>x.grp==='ct')" :key="v.id" class="nav-it" :class="{active:store.view===v.id, locked:!allowed(v.id)}" @click="pick(v.id)" :title="allowed(v.id)?v.label:'Not in your role scope'"><i class="bi" :class="allowed(v.id)?v.icon:'bi-lock'"></i>{{v.label}}<span class="q">{{v.q}}</span></button>
+    <div class="nav-sec">Innovations</div>
+    <button v-for="v in views.filter(x=>x.grp==='in')" :key="v.id" class="nav-it" :class="{active:store.view===v.id, locked:!allowed(v.id)}" @click="pick(v.id)" :title="allowed(v.id)?v.label:'Not in your role scope'"><i class="bi" :class="allowed(v.id)?v.icon:'bi-lock'"></i>{{v.label}}<span class="q">{{v.q}}</span></button>
+    <div class="side-foot">Global Treasury Centre, Mumbai · GRCTC, GIFT City · 3 regional desks · TSSC payment factory<br><br>5 panel banks · cloud TMS · one SWIFT channel on ISO 20022</div>
+   </aside>
+   <div class="main">
+    <header class="topbar">
+     <button class="btn-icon d-lg-none" @click="navOpen=true" aria-label="Open navigation"><i class="bi bi-list"></i></button>
+     <div class="role-pick"><label for="rolesel">Viewing as</label><select id="rolesel" :value="store.role" @change="setRole($event.target.value)"><option v-for="r in roles" :key="r.id" :value="r.id">{{r.label}}</option></select></div>
+     <form class="ask d-none d-md-flex" @submit.prevent="askQuick"><i class="bi bi-stars"></i><input v-model="quickQ" placeholder="Ask Treasury Copilot, e.g. EUR exposure to HSBC" aria-label="Ask Treasury Copilot"></form>
+     <div class="fresh d-none d-xl-flex"><span>End of day <b>camt.053 · 06:10</b></span><span>Intraday <b>camt.052 / API · {{intraAt}}</b></span></div>
+     <div class="clock ms-auto ms-xl-0" title="Demo clock (IST)"><span class="live-dot"></span>{{clock}} IST</div>
+     <button class="btn-icon" @click="toggleTheme" :aria-label="'Switch to '+(store.theme==='dark'?'light':'dark')+' theme'"><i class="bi" :class="store.theme==='dark'?'bi-sun':'bi-moon-stars'"></i></button>
+     <button class="btn-icon" @click="alertsOpen=true" aria-label="Open alerts"><i class="bi bi-bell"></i><span class="badge-n" v-if="openN">{{openN}}</span></button>
+    </header>
+    <main class="content">
+     <component :is="comp" :key="store.view+'|'+store.role"></component>
+    </main>
+    <footer class="foot">Simulated data for the EY CAFTA Case Championship 2026 case (Global Consumer Products Ltd). Not real company data. INR crore unless stated; FX at indicative rates. Design ideas: Treasury Control Tower, GIFT City GRCTC, camt.086 fee audit, Treasury Copilot, Treasury-in-a-box, liquidity stress test.</footer>
+   </div>
+  </div>
+  <alerts-drawer v-if="alertsOpen" @close="alertsOpen=false"></alerts-drawer>
+  <div class="toasts" aria-live="polite"><div v-for="t in store.toasts" :key="t.id" class="toastx" :class="t.sev"><div class="fw6">{{t.title}}</div><div class="small2 ink2">{{t.body}}</div></div></div>
+  <div class="tipbox" v-if="store.tip" :style="tipStyle"><div class="tt">{{store.tip.title}}</div><div class="tr2" v-for="(r,i) in store.tip.rows" :key="i"><b>{{r[0]}}</b><span>{{r[1]}}</span></div></div>
+  `,
+  computed:{
+    store:()=>store, roles:()=>ROLES, views:()=>VIEWS,
+    comp(){ return { overview:'OverviewView', cashmap:'CashMapView', runway:'RunwayView', counterparty:'CounterpartyView', fx:'FxView', payments:'PaymentsView', kpi:'KpiView', gift:'GiftView', fees:'FeesView', copilot:'CopilotView', playbook:'PlaybookView', stress:'StressView' }[store.view]; },
+    clock(){ return hhmm(store.clockMin)+':'+p2(store.clockSec); },
+    intraAt(){ return hhmm(Math.floor(store.clockMin/15)*15); },
+    openN(){ return OPEN_ALERTS.value.length; },
+    tipStyle(){ const t=store.tip; const w=window.innerWidth, h=window.innerHeight; const left = Math.min(t.x+14, w-310), top = t.y+16 > h-120 ? t.y-110 : t.y+16; return { left:left+'px', top:top+'px' }; },
+  },
+  methods:{
+    allowed(v){ return roleObj.value.views.includes(v); },
+    pick(v){ navigate(v); this.navOpen=false; },
+    setRole(id){ store.role=id; const r=roleObj.value; if(!r.views.includes(store.view)) store.view=r.home; toast('info','Viewing as '+r.label, (r.regions.length===4?'All 15 entities':'Scoped to '+r.regions.join(', ')+': '+scopeEnts.value.length+' entities')+' · '+r.views.length+' views.'); logAudit('Switched role view', r.label, r.label); },
+    toggleTheme(){ store.theme = store.theme==='dark'?'light':'dark'; document.documentElement.dataset.theme=store.theme; document.documentElement.setAttribute('data-bs-theme', store.theme); try{ localStorage.setItem('gcpl-ct-theme', store.theme); }catch(e){} },
+    askQuick(){ const q=this.quickQ.trim(); if(!q) return; this.quickQ=''; store.copilotPending=q; if(store.view!=='copilot') navigate('copilot'); },
+  },
+  mounted(){
+    setInterval(()=>{ store.clockSec++; if(store.clockSec>=60){ store.clockSec=0; store.clockMin++; } }, 1000);
+    window.addEventListener('scroll', ()=>{ store.tip=null; }, { passive:true });
+    window.addEventListener('keydown', e=>{ if(e.key==='Escape'){ this.alertsOpen=false; this.navOpen=false; } });
+  },
+});
+app.mount('#app');
+</script>
+</body>
+</html>
